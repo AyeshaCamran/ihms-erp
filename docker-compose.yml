@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/auth-service:/app
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - postgres
+  # inventory-service:
+  #   build: ./services/inventory-service
+  #   container_name: inventory_service
+  #   ports:
+  #     - "8001:8001"
+  #   volumes:
+  #     - ./services/inventory-service:/app
+  #   env_file:
+  #     - ./services/inventory-service/.env
+  #   depends_on:
+  #     - postgres                                                                           
+  postgres:
+    image: postgres:15
+    container_name: ihms_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ihms_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
