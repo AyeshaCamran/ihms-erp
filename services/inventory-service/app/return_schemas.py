@@ -1,17 +1,18 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-class CondemnBase(BaseModel):
+class ReturnBase(BaseModel):
     item_id: int
+    quantity: int
+    vendor_name: str
     reason: str
-    reported_by: str
 
-class CondemnCreate(CondemnBase):
+class ReturnCreate(ReturnBase):
     pass
 
-class CondemnOut(CondemnBase):
+class ReturnOut(ReturnBase):
     id: int
-    condemned_at: datetime
+    return_date: datetime
 
     class Config:
         orm_mode = True
