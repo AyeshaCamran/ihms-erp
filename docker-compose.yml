@@ -12,6 +12,7 @@ services:
       - ./services/auth-service/.env
     depends_on:
       - postgres
+
   inventory-service:
     build: ./services/inventory-service
     container_name: inventory_service
@@ -22,7 +23,17 @@ services:
     env_file:
       - ./services/inventory-service/.env
     depends_on:
-      - postgres                                                                           
+      - postgres
+
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: ihms_api_gateway
+    ports:
+      - "9000:9000"
+    depends_on:
+      - auth-service
+      - inventory-service
+
   postgres:
     image: postgres:15
     container_name: ihms_postgres
