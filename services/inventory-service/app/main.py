@@ -6,11 +6,20 @@ from .condemn_routes import router as condemn_router                        #con
 from .return_routes import router as return_router                          #return route
 from .issue_routes import router as issue_router                            #issue route
 from .stock_receive_routes import router as stock_receive_router            #stock receive route
+from fastapi.middleware.cors import CORSMiddleware
 
 
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="IHMS Inventory Service")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Frontend Vite dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def get_db():
     db = database.SessionLocal()
