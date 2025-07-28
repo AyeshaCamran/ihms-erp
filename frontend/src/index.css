@@ -1,1 +1,140 @@
 @import "tailwindcss";
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+:root {
+  /* Colors */
+  --bluedark: #233955;
+  --bluehover: #1a2a40;
+  --bluelight: #A2F2EE;
+  --bluesubtle: #DFF8F9;
+  --red30: #FD4245;
+  --red20: #FEBBBC;
+  --red10: #FFE1E1;
+  --redsubtle: #FFF4F4;
+  --blackn: #05080B;
+  --whiten: #FFFFFF;
+  --gray30: #4B4D4F;
+  --gray20: #87888A;
+  --gray10: #C3C4C4;
+  --grayline: #E6E6E7;
+  --graybg: #F0F0F0;
+  --graybgsubtle: #F5F5F5;
+  --grayhover: #F3F9F9;
+
+  /* Font sizes */
+  --display1: 32px;
+  --display2: 28px;
+  --display3: 26px;
+  --display4: 24px;
+  --title1: 22px;
+  --title2: 20px;
+  --title3: 18px;
+  --title4: 16px;
+  --buttonl: 16px;
+  --buttonm: 14px;
+  --buttons: 12px;
+  --buttonxs: 11px;
+  --bodyn: 16px;
+  --smalln: 14px;
+  --xsmall: 12px;
+  --xxsmall: 10px;
+  --xxxsmall: 8px;
+  --xsmallalt: 11px;
+  --xxsmallalt: 9px;
+
+  /* Border radius */
+  --radiusmd: 6px;
+
+  /* Box shadow */
+  --shadowsubtle: 0px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Example usage */
+.button {
+  background: var(--bluedark);
+  color: var(--whiten);
+  font-size: var(--buttonl);
+  border-radius: var(--radiusmd);
+  box-shadow: var(--shadowsubtle);
+}
+
+/* ...other styles... */
+/* Color utilities */
+.bg-bluedark     { background-color: var(--bluedark); }
+/* Add this for hover support */
+.hover\:bg-bluelight:hover {
+  background-color: var(--bluelight);
+}
+.bg-bluesubtle   { background-color: var(--bluesubtle); }
+.bg-red30        { background-color: var(--red30); }
+.bg-red20        { background-color: var(--red20); }
+.bg-red10        { background-color: var(--red10); }
+.bg-redsubtle    { background-color: var(--redsubtle); }
+.bg-blackn       { background-color: var(--blackn); }
+.bg-whiten       { background-color: var(--whiten); }
+.bg-gray30       { background-color: var(--gray30); }
+.bg-gray20       { background-color: var(--gray20); }
+.bg-gray10       { background-color: var(--gray10); }
+.hover\:bg-grayline:hover { 
+  background-color: var(--grayline); 
+}
+.bg-graybg       { background-color: var(--graybg); }
+.bg-graybgsubtle{ background-color: var(--graybgsubtle); }
+.bg-grayhover    { background-color: var(--grayhover); }
+
+.text-bluedark     { color: var(--bluedark); }
+.text-bluelight    { color: var(--bluelight); }
+.text-bluesubtle   { color: var(--bluesubtle); }
+.text-red30        { color: var(--red30); }
+.text-red20        { color: var(--red20); }
+.text-red10        { color: var(--red10); }
+.text-redsubtle    { color: var(--redsubtle); }
+.text-blackn       { color: var(--blackn); }
+.text-whiten       { color: var(--whiten); }
+.text-gray30       { color: var(--gray30); }
+.text-gray20       { color: var(--gray20); }
+.text-gray10       { color: var(--gray10); }
+.text-grayline     { color: var(--grayline); }
+.text-graybg       { color: var(--graybg); }
+.text-graybgsubtle{ color: var(--graybgsubtle); }
+.text-grayhover    { color: var(--grayhover); }
+
+/* Font size utilities */
+.text-display1   { font-size: var(--display1); }
+.text-display2   { font-size: var(--display2); }
+.text-display3   { font-size: var(--display3); }
+.text-display4   { font-size: var(--display4); }
+.text-title1     { font-size: var(--title1); }
+.text-title2     { font-size: var(--title2); }
+.text-title3     { font-size: var(--title3); }
+.text-title4     { font-size: var(--title4); }
+.text-buttonl   { font-size: var(--buttonl); }
+.text-buttonm   { font-size: var(--buttonm); }
+.text-buttons   { font-size: var(--buttons); }
+.text-buttonxs  { font-size: var(--buttonxs); }
+.text-bodyn     { font-size: var(--bodyn); }
+.text-smalln    { font-size: var(--smalln); }
+.text-xsmall     { font-size: var(--xsmall); }
+.text-xxsmall    { font-size: var(--xxsmall); }
+.text-xxxsmall   { font-size: var(--xxxsmall); }
+.text-xsmallalt { font-size: var(--xsmallalt); }
+.text-xxsmallalt{ font-size: var(--xxsmallalt); }
+
+/* Border radius utilities */
+.roundedmd { border-radius: var(--radiusmd); }
+
+/* Box shadow utilities */
+.shadowsubtle { box-shadow: var(--shadowsubtle); }

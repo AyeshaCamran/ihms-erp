@@ -6,3 +6,9 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 pydantic
+pytz
+pandas
+python-multipart
+pandas
+openpyxl
+
