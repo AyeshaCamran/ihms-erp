@@ -139,11 +139,18 @@ const RequestForm = () => {
             onChange={(e) => setFormData({ ...formData, department: e.target.value })}
             className="mt-1 p-2 w-full border rounded"
           >
-            {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map((char) => (
-              <option key={char} value={`Department ${char}`}>
-                Department {char}
+            {[
+              "Anatomy", "Anesthesia", "Biochemistry", "Community Medicine", "Dentistry",
+              "Dermatology, Ven. & Lep.", "ENT", "Forensic Medicine", "General Medicine",
+              "General Surgery", "Microbiology", "Obstetrics & Gynecology", "Ophthalmology",
+              "Orthopedics", "Pathology", "Pediatrics", "Pharmacology", "Physiology",
+              "Psychiatry", "Radiology", "TB & Chest", "Casuality & Emergency Medicine"
+            ].map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
               </option>
             ))}
+
           </select>
         </div>
 

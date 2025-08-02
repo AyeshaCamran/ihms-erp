@@ -88,7 +88,7 @@ const InventoryList = () => {
   return (
     <div className="p-2 bg-white text-[#05080B]">
       {/* Filters + Buttons */}
-      <div className="sticky top-0 z-20 bg-white py-2 flex flex-wrap justify-between items-center gap-4 border-b border-[#E6E6E7]">
+      <div className="sticky top-0 z-20 bg-white py-2 flex flex-wrap justify-between items-center gap-4 border-[#E6E6E7]">
         {/* Left Controls */}
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative">
