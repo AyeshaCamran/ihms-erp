@@ -103,3 +103,12 @@ def reset_password(req: schemas.ResetPassword, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Password reset successful"}
 
+#roles
+@router.get("/auth/users")
+def get_users(role: str = None, department: str = None, db: Session = Depends(get_db)):
+    query = db.query(models.User)
+    if role:
+        query = query.filter(models.User.role == role)
+    if department:
+        query = query.filter(models.User.department == department)
+    return query.all()

@@ -3,13 +3,15 @@ import logo from "../../assets/iul green logo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Printer } from "lucide-react";
 
-
 const RequestForm = () => {
   const [formNo] = useState(Math.floor(10000 + Math.random() * 90000));
   const [items, setItems] = useState([]);
+  const [hodList, setHodList] = useState([]);
+  const [storeInchargeList, setStoreInchargeList] = useState([]);
+  
   const [formRows, setFormRows] = useState([
     {
-      item_id: null, //edited
+      item_id: null,
       type: "",
       itemname: "",
       requiredQty: "",
@@ -29,6 +31,37 @@ const RequestForm = () => {
     justification: ""
   });
 
+  // Additional form fields for signatures and office use
+  const [signatureData, setSignatureData] = useState({
+    // HOD/Incharge section
+    hodName: "",
+    hodSignDate: "",
+    
+    // Dean section
+    deanName: "",
+    deanSignDate: "",
+    
+    // PVC section
+    pvcName: "",
+    pvcSignDate: "",
+    
+    // VC section
+    vcName: "",
+    vcSignDate: "",
+    
+    // Office Use Only section
+    requestReceivedOn: "",
+    procurementOfficer: "",
+    procurementSignature: "",
+    procurementSignDate: "",
+    materialIssuedOn: "",
+    voucherNo: "",
+    defectiveMaterialReceived: "No",
+    storeIncharge: "",
+    storeSignature: "",
+    storeSignDate: ""
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,11 +71,96 @@ const RequestForm = () => {
       .catch(console.error);
   }, []);
 
+  // Fetch HOD when department changes
+  useEffect(() => {
+    if (formData.department && formData.department !== "Department A") {
+      fetchHodForDepartment(formData.department);
+    }
+  }, [formData.department]);
+
+  // Fetch store incharge list on component mount
+  useEffect(() => {
+    fetchStoreInchargeList();
+  }, []);
+
+  const fetchHodForDepartment = async (department) => {
+    try {
+      // Try to fetch HOD from your auth service
+      const response = await fetch(`http://localhost:8000/auth/users?role=HOD&department=${encodeURIComponent(department)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setHodList(data);
+        
+        // Auto-fill HOD name if only one found
+        if (data.length === 1) {
+          setSignatureData(prev => ({
+            ...prev,
+            hodName: data[0].name
+          }));
+        } else if (data.length === 0) {
+          // Fallback - create default HOD name
+          setSignatureData(prev => ({
+            ...prev,
+            hodName: `HOD - ${department}`
+          }));
+        }
+      } else {
+        // Fallback if API fails
+        setSignatureData(prev => ({
+          ...prev,
+          hodName: `HOD - ${department}`
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch HOD:", error);
+      // Fallback
+      setSignatureData(prev => ({
+        ...prev,
+        hodName: `HOD - ${department}`
+      }));
+    }
+  };
+
+  const fetchStoreInchargeList = async () => {
+    try {
+      // Try to fetch administrators/store incharge from your auth service
+      const response = await fetch("http://localhost:8000/auth/users?role=Administrator");
+      if (response.ok) {
+        const data = await response.json();
+        setStoreInchargeList(data);
+        
+        // Auto-fill store incharge and procurement officer if data available
+        if (data.length > 0) {
+          setSignatureData(prev => ({
+            ...prev,
+            storeIncharge: data[0].name,
+            procurementOfficer: data[0].name
+          }));
+        }
+      } else {
+        // Fallback
+        setSignatureData(prev => ({
+          ...prev,
+          storeIncharge: "Store Incharge",
+          procurementOfficer: "Procurement Officer"
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch store incharge list:", error);
+      // Fallback
+      setSignatureData(prev => ({
+        ...prev,
+        storeIncharge: "Store Incharge",
+        procurementOfficer: "Procurement Officer"
+      }));
+    }
+  };
+
   const handleAddRow = () => {
     setFormRows([
       ...formRows,
       {
-        item_id: null, //edited
+        item_id: null,
         type: "",
         itemname: "",
         requiredQty: "",
@@ -61,7 +179,7 @@ const RequestForm = () => {
     if (field === "itemname") {
       const selectedItem = items.find((i) => i.itemname === value);
       if (selectedItem) {
-        updatedRows[index].item_id = selectedItem.id;  // ✅ Set item_id
+        updatedRows[index].item_id = selectedItem.id;
         updatedRows[index].type = selectedItem.type;
         updatedRows[index].availableQty = selectedItem.qty;
         updatedRows[index].balQty = selectedItem.qty - (updatedRows[index].issuedQty || 0);
@@ -77,15 +195,20 @@ const RequestForm = () => {
     setFormRows(updatedRows);
   };
 
+  const handleSignatureChange = (field, value) => {
+    setSignatureData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmit = () => {
     const payload = {
       ...formData,
+      ...signatureData, // Include signature data
       items: formRows.map((row) => ({
         item_id: row.item_id,
-        //type: row.type,
-        //itemname: row.itemname,
         requiredQty: parseInt(row.requiredQty),
-        //availableQty: parseInt(row.availableQty),
         issuedQty: parseInt(row.issuedQty) || 0,
         remarks: row.remarks
       }))
@@ -108,15 +231,13 @@ const RequestForm = () => {
     <div className="p-6 bg-white max-w-6xl mx-auto text-sm">
       <div className="flex justify-end items-center mb-6">
         <button
-        onClick={() => window.print()}
-        className="text-gray-700 hover:text-black w-10 h-10 bg-gray-200 rounded flex items-center justify-center"
-        title="Print Form"
+          onClick={() => window.print()}
+          className="text-gray-700 hover:text-black w-10 h-10 bg-gray-200 rounded flex items-center justify-center"
+          title="Print Form"
         >
-      <Printer className="w-5 h-5" />
-      </button>
+          <Printer className="w-5 h-5" />
+        </button>
       </div>
-
-    
 
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <img src={logo} alt="Integral Logo" className="h-16" />
@@ -124,11 +245,10 @@ const RequestForm = () => {
           <p className="text-xl font-bold">Requisition Form</p>
           <p className="text-xs text-gray-800">(For Procurement of Materials)</p>
         </div>
-          <div className="text-sm text-right font-semibold">
-            Integral University<br />Kursi Road, Lucknow-226026
-            <div className="text-sm font-semibold">Form No: {formNo}</div>
-
-          </div>
+        <div className="text-sm text-right font-semibold">
+          Integral University<br />Kursi Road, Lucknow-226026
+          <div className="text-sm font-semibold">Form No: {formNo}</div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -150,7 +270,6 @@ const RequestForm = () => {
                 {dept}
               </option>
             ))}
-
           </select>
         </div>
 
@@ -313,25 +432,102 @@ const RequestForm = () => {
         />
       </div>
 
-      {/* Approval & Signature Section */}
+      {/* Enhanced Approval & Signature Section with Input Fields */}
       <div className="mt-6 text-sm text-gray-800">
         <div className="border border-gray-300 p-4 rounded-md space-y-4">
           <div className="flex justify-between">
             <div>
               <p className="font-semibold">Approval Process:</p>
-              <p>Sign. of H.O.D. / Incharge: __________________________</p>
-              <p>Name: ________________________________________________</p><br></br>
-              <p>Dean / Director / MS: __________________________</p>
+              
+              {/* HOD Section with Input Fields */}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label className="text-xs font-medium">H.O.D. / Incharge Name:</label>
+                  <input
+                    type="text"
+                    value={signatureData.hodName}
+                    onChange={(e) => handleSignatureChange('hodName', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                    placeholder="Auto-filled"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature Date:</label>
+                  <input
+                    type="date"
+                    value={signatureData.hodSignDate}
+                    onChange={(e) => handleSignatureChange('hodSignDate', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
+              </div>
 
+              <br />
+
+              {/* Dean Section with Input Fields */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Dean / Director / MS Name:</label>
+                  <input
+                    type="text"
+                    value={signatureData.deanName}
+                    onChange={(e) => handleSignatureChange('deanName', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                    placeholder="Enter Dean name"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature Date:</label>
+                  <input
+                    type="date"
+                    value={signatureData.deanSignDate}
+                    onChange={(e) => handleSignatureChange('deanSignDate', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
+              </div>
             </div>
             <div className="text-right">
               <p className="font-semibold">Approved/Not Approved</p>
             </div>
           </div>
-          <div className="flex justify-between">
-            <p>PVC: __________________________________</p>
-            <p>VC: __________________________________</p>
+
+          {/* PVC and VC Section with Input Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium">PVC Name:</label>
+              <input
+                type="text"
+                value={signatureData.pvcName}
+                onChange={(e) => handleSignatureChange('pvcName', e.target.value)}
+                className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1 mb-2"
+                placeholder="Enter PVC name"
+              />
+              <input
+                type="date"
+                value={signatureData.pvcSignDate}
+                onChange={(e) => handleSignatureChange('pvcSignDate', e.target.value)}
+                className="w-full border border-gray-300 px-2 py-1 text-xs rounded"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium">VC Name:</label>
+              <input
+                type="text"
+                value={signatureData.vcName}
+                onChange={(e) => handleSignatureChange('vcName', e.target.value)}
+                className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1 mb-2"
+                placeholder="Enter VC name"
+              />
+              <input
+                type="date"
+                value={signatureData.vcSignDate}
+                onChange={(e) => handleSignatureChange('vcSignDate', e.target.value)}
+                className="w-full border border-gray-300 px-2 py-1 text-xs rounded"
+              />
+            </div>
           </div>
+
           <div className="text-[13px] mt-3">
             <p className="font-semibold">Note:</p>
             <ol className="list-decimal list-inside ml-4 space-y-1">
@@ -347,20 +543,101 @@ const RequestForm = () => {
               </li>
             </ol>
           </div>
+
+          {/* Enhanced Office Use Only Section with Input Fields */}
           <div className="mt-4 border-t pt-3">
             <p className="text-center font-semibold text-gray-600">For Office Use Only</p>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div>
-                <p>Requested received on: __________________________</p>
-                <p className="mt-2">Procurement Officer: __________________________</p>
-                <p>Signature: ______________________________________</p>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Request received on:</label>
+                  <input
+                    type="date"
+                    value={signatureData.requestReceivedOn}
+                    onChange={(e) => handleSignatureChange('requestReceivedOn', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Procurement Officer:</label>
+                  <select
+                    value={signatureData.procurementOfficer}
+                    onChange={(e) => handleSignatureChange('procurementOfficer', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  >
+                    <option value="">Select Officer</option>
+                    {storeInchargeList.map((admin, index) => (
+                      <option key={index} value={admin.name}>
+                        {admin.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature Date:</label>
+                  <input
+                    type="date"
+                    value={signatureData.procurementSignDate}
+                    onChange={(e) => handleSignatureChange('procurementSignDate', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
               </div>
               <div>
-                <p>Material Issued on: __________________________</p>
-                <p>Voucher No.: _________________________________</p>
-                <p>Defective material recd.: Yes / No</p>
-                <p className="mt-2">Store Incharge: __________________________</p>
-                <p>Signature: __________________________________</p>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Material Issued on:</label>
+                  <input
+                    type="date"
+                    value={signatureData.materialIssuedOn}
+                    onChange={(e) => handleSignatureChange('materialIssuedOn', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Voucher No.:</label>
+                  <input
+                    type="text"
+                    value={signatureData.voucherNo}
+                    onChange={(e) => handleSignatureChange('voucherNo', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                    placeholder="Enter voucher number"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Defective material received:</label>
+                  <select
+                    value={signatureData.defectiveMaterialReceived}
+                    onChange={(e) => handleSignatureChange('defectiveMaterialReceived', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  >
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <div className="mb-2">
+                  <label className="text-xs font-medium">Store Incharge:</label>
+                  <select
+                    value={signatureData.storeIncharge}
+                    onChange={(e) => handleSignatureChange('storeIncharge', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  >
+                    <option value="">Select Incharge</option>
+                    {storeInchargeList.map((admin, index) => (
+                      <option key={index} value={admin.name}>
+                        {admin.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature Date:</label>
+                  <input
+                    type="date"
+                    value={signatureData.storeSignDate}
+                    onChange={(e) => handleSignatureChange('storeSignDate', e.target.value)}
+                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
+                  />
+                </div>
               </div>
             </div>
           </div>
