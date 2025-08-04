@@ -23,7 +23,7 @@ export default function Login({ setUser }) {
     "Psychiatry", "Radiology", "TB & Chest", "Casuality & Emergency Medicine"
   ];
 
-  const roles = ["Administrator", "HOD", "Dean", "Director", "Executive Director"];
+  const roles = ["Administrator", "HOD", "Dean", "Director", "Executive Director", "Inventory Admin"];
 
   const handleChange = (e) => {
     setFormData((prev) => ({
