@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import logo from "../../assets/iul green logo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 
 const RequestForm = () => {
+  const printRef = useRef();
+  const [currentUser, setCurrentUser] = useState(null);
   const [formNo] = useState(Math.floor(10000 + Math.random() * 90000));
   const [items, setItems] = useState([]);
   const [hodList, setHodList] = useState([]);
   const [storeInchargeList, setStoreInchargeList] = useState([]);
-  
+
+const handlePrint = useReactToPrint({
+  content: () => printRef.current,
+});
+
   const [formRows, setFormRows] = useState([
     {
-      item_id: null,
+      item_id: "",
       type: "",
       itemname: "",
       requiredQty: "",
@@ -31,25 +38,15 @@ const RequestForm = () => {
     justification: ""
   });
 
-  // Additional form fields for signatures and office use
   const [signatureData, setSignatureData] = useState({
-    // HOD/Incharge section
     hodName: "",
     hodSignDate: "",
-    
-    // Dean section
     deanName: "",
     deanSignDate: "",
-    
-    // PVC section
     pvcName: "",
     pvcSignDate: "",
-    
-    // VC section
     vcName: "",
     vcSignDate: "",
-    
-    // Office Use Only section
     requestReceivedOn: "",
     procurementOfficer: "",
     procurementSignature: "",
@@ -63,6 +60,19 @@ const RequestForm = () => {
   });
 
   const navigate = useNavigate();
+  const isHOD = currentUser?.role === "HOD";
+  const isAdmin = currentUser?.role === "Inventory Admin";
+
+  useEffect(() => {
+    fetch("http://localhost:8000/auth/me", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setCurrentUser(data))
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     fetch("http://localhost:8001/inventory/items")
@@ -71,65 +81,65 @@ const RequestForm = () => {
       .catch(console.error);
   }, []);
 
-  // Fetch HOD when department changes
   useEffect(() => {
     if (formData.department && formData.department !== "Department A") {
       fetchHodForDepartment(formData.department);
     }
   }, [formData.department]);
 
-  // Fetch store incharge list on component mount
   useEffect(() => {
     fetchStoreInchargeList();
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token"); 
+    if (token) {
+      fetch("http://localhost:8000/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.role === "HOD") {
+            setSignatureData((prev) => ({ ...prev, hodName: data.name }));
+          }
+          if (data.role === "Inventory Admin") {
+            setSignatureData((prev) => ({ ...prev, storeIncharge: data.name }));
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
+
   const fetchHodForDepartment = async (department) => {
     try {
-      // Try to fetch HOD from your auth service
       const response = await fetch(`http://localhost:8000/auth/users?role=HOD&department=${encodeURIComponent(department)}`);
       if (response.ok) {
         const data = await response.json();
         setHodList(data);
-        
-        // Auto-fill HOD name if only one found
+
         if (data.length === 1) {
-          setSignatureData(prev => ({
-            ...prev,
-            hodName: data[0].name
-          }));
+          setSignatureData(prev => ({ ...prev, hodName: data[0].name }));
         } else if (data.length === 0) {
-          // Fallback - create default HOD name
-          setSignatureData(prev => ({
-            ...prev,
-            hodName: `HOD - ${department}`
-          }));
+          setSignatureData(prev => ({ ...prev, hodName: `HOD - ${department}` }));
         }
       } else {
-        // Fallback if API fails
-        setSignatureData(prev => ({
-          ...prev,
-          hodName: `HOD - ${department}`
-        }));
+        setSignatureData(prev => ({ ...prev, hodName: `HOD - ${department}` }));
       }
     } catch (error) {
       console.error("Failed to fetch HOD:", error);
-      // Fallback
-      setSignatureData(prev => ({
-        ...prev,
-        hodName: `HOD - ${department}`
-      }));
+      setSignatureData(prev => ({ ...prev, hodName: `HOD - ${department}` }));
     }
   };
 
   const fetchStoreInchargeList = async () => {
     try {
-      // Try to fetch administrators/store incharge from your auth service
-      const response = await fetch("http://localhost:8000/auth/users?role=Administrator");
+      const response = await fetch("http://localhost:8000/auth/users?role=Inventory Admin");
       if (response.ok) {
         const data = await response.json();
         setStoreInchargeList(data);
-        
-        // Auto-fill store incharge and procurement officer if data available
+
         if (data.length > 0) {
           setSignatureData(prev => ({
             ...prev,
@@ -138,7 +148,6 @@ const RequestForm = () => {
           }));
         }
       } else {
-        // Fallback
         setSignatureData(prev => ({
           ...prev,
           storeIncharge: "Store Incharge",
@@ -147,7 +156,6 @@ const RequestForm = () => {
       }
     } catch (error) {
       console.error("Failed to fetch store incharge list:", error);
-      // Fallback
       setSignatureData(prev => ({
         ...prev,
         storeIncharge: "Store Incharge",
@@ -203,42 +211,62 @@ const RequestForm = () => {
   };
 
   const handleSubmit = () => {
-    const payload = {
-      ...formData,
-      ...signatureData, // Include signature data
-      items: formRows.map((row) => ({
-        item_id: row.item_id,
-        requiredQty: parseInt(row.requiredQty),
-        issuedQty: parseInt(row.issuedQty) || 0,
-        remarks: row.remarks
-      }))
-    };
+  const token = localStorage.getItem("token"); // ✅ Fetch token from localStorage
 
-    fetch("http://localhost:8001/inventory/requisition", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert("Requisition submitted successfully!");
-        navigate("/inventory/requisition");
-      })
-      .catch(console.error);
+  const payload = {
+    ...formData,
+    ...signatureData,
+    items: formRows.map((row) => ({
+      item_id: row.item_id,
+      requiredQty: parseInt(row.requiredQty),
+      issuedQty: parseInt(row.issuedQty) || 0,
+      remarks: row.remarks,
+
+      // ✅ Include these only if needed by frontend
+      type: row.type,
+      itemname: row.itemname,
+      availableQty: row.availableQty,
+      balQty: row.balQty
+    }))
   };
+
+  fetch("http://localhost:8001/inventory/requisition", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` // ✅ Add token here
+    },
+    body: JSON.stringify(payload)
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Requisition submission failed");
+      }
+      return res.json();
+    })
+    .then(() => {
+      alert("Requisition submitted successfully!");
+      navigate("/inventory/requisition");
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("Failed to submit requisition. Please check console for details.");
+    });
+};
+
 
   return (
     <div className="p-6 bg-white max-w-6xl mx-auto text-sm">
       <div className="flex justify-end items-center mb-6">
         <button
-          onClick={() => window.print()}
+          onClick={handlePrint}
           className="text-gray-700 hover:text-black w-10 h-10 bg-gray-200 rounded flex items-center justify-center"
           title="Print Form"
         >
           <Printer className="w-5 h-5" />
         </button>
       </div>
-
+      <div ref={printRef}>
       <div className="flex justify-between items-center mb-4 border-b pb-2">
         <img src={logo} alt="Integral Logo" className="h-16" />
         <div className="text-center flex-grow">
@@ -310,43 +338,43 @@ const RequestForm = () => {
       <div className="flex gap-6 mb-4">
         <div>
           <p className="font-semibold">Material Type:</p>
-          {["Consumables", "Non Consumables", "Capital"].map((type) => (
-            <label key={type} className="block">
+          {["Consumables", "Non Consumables", "Capital"].map((material_types) => (
+            <label key={material_types} className="block">
               <input
                 type="checkbox"
-                value={type}
+                value={material_types}
                 onChange={(e) => {
                   const checked = e.target.checked;
                   setFormData((prev) => ({
                     ...prev,
                     materialTypes: checked
-                      ? [...prev.materialTypes, type]
-                      : prev.materialTypes.filter((t) => t !== type)
+                      ? [...prev.materialTypes, material_types]
+                      : prev.materialTypes.filter((t) => t !== material_types)
                   }));
                 }}
               />{" "}
-              {type}
+              {material_types}
             </label>
           ))}
         </div>
         <div>
           <p className="font-semibold">Material Requirement:</p>
-          {["Monthly", "Quarterly", "Semester/Yearly"].map((req) => (
-            <label key={req} className="block">
+          {["Monthly", "Quarterly", "Semester/Yearly"].map((requirement_types) => (
+            <label key={requirement_types} className="block">
               <input
                 type="checkbox"
-                value={req}
+                value={requirement_types}
                 onChange={(e) => {
                   const checked = e.target.checked;
                   setFormData((prev) => ({
                     ...prev,
                     requirementTypes: checked
-                      ? [...prev.requirementTypes, req]
-                      : prev.requirementTypes.filter((r) => r !== req)
+                      ? [...prev.requirementTypes, requirement_types]
+                      : prev.requirementTypes.filter((r) => r !== requirement_types)
                   }));
                 }}
               />{" "}
-              {req}
+              {requirement_types}
             </label>
           ))}
         </div>
@@ -401,6 +429,8 @@ const RequestForm = () => {
                     value={row.issuedQty}
                     onChange={(e) => handleRowChange(index, "issuedQty", e.target.value)}
                     className="w-full outline-none"
+                    disabled={isHOD}
+
                   />
                 </td>
                 <td className="border px-2 py-1 text-center">{row.balQty || "-"}</td>
@@ -410,6 +440,8 @@ const RequestForm = () => {
                     value={row.remarks}
                     onChange={(e) => handleRowChange(index, "remarks", e.target.value)}
                     className="w-full outline-none"
+                    disabled={isHOD}
+
                   />
                 </td>
               </tr>
@@ -452,13 +484,8 @@ const RequestForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium">Signature Date:</label>
-                  <input
-                    type="date"
-                    value={signatureData.hodSignDate}
-                    onChange={(e) => handleSignatureChange('hodSignDate', e.target.value)}
-                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                  />
+                    <label className="text-xs font-medium">Signature of HOD:</label>
+                    <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1" />
                 </div>
               </div>
 
@@ -467,23 +494,9 @@ const RequestForm = () => {
               {/* Dean Section with Input Fields */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs font-medium">Dean / Director / MS Name:</label>
-                  <input
-                    type="text"
-                    value={signatureData.deanName}
-                    onChange={(e) => handleSignatureChange('deanName', e.target.value)}
-                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                    placeholder="Enter Dean name"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Signature Date:</label>
-                  <input
-                    type="date"
-                    value={signatureData.deanSignDate}
-                    onChange={(e) => handleSignatureChange('deanSignDate', e.target.value)}
-                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                  />
+                  <label className="text-xs font-medium">Dean / Director / MS:</label>
+                  <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1" />
+
                 </div>
               </div>
             </div>
@@ -495,36 +508,14 @@ const RequestForm = () => {
           {/* PVC and VC Section with Input Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium">PVC Name:</label>
-              <input
-                type="text"
-                value={signatureData.pvcName}
-                onChange={(e) => handleSignatureChange('pvcName', e.target.value)}
-                className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1 mb-2"
-                placeholder="Enter PVC name"
-              />
-              <input
-                type="date"
-                value={signatureData.pvcSignDate}
-                onChange={(e) => handleSignatureChange('pvcSignDate', e.target.value)}
-                className="w-full border border-gray-300 px-2 py-1 text-xs rounded"
-              />
+              <label className="text-xs font-medium">PVC:</label>
+              <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1" />
+
             </div>
             <div>
-              <label className="text-xs font-medium">VC Name:</label>
-              <input
-                type="text"
-                value={signatureData.vcName}
-                onChange={(e) => handleSignatureChange('vcName', e.target.value)}
-                className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1 mb-2"
-                placeholder="Enter VC name"
-              />
-              <input
-                type="date"
-                value={signatureData.vcSignDate}
-                onChange={(e) => handleSignatureChange('vcSignDate', e.target.value)}
-                className="w-full border border-gray-300 px-2 py-1 text-xs rounded"
-              />
+              <label className="text-xs font-medium">VC:</label>
+              <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1" />
+
             </div>
           </div>
 
@@ -545,6 +536,7 @@ const RequestForm = () => {
           </div>
 
           {/* Enhanced Office Use Only Section with Input Fields */}
+         {isAdmin && ( 
           <div className="mt-4 border-t pt-3">
             <p className="text-center font-semibold text-gray-600">For Office Use Only</p>
             <div className="grid grid-cols-2 gap-4 mt-2">
@@ -560,30 +552,8 @@ const RequestForm = () => {
                 </div>
                 <div className="mb-2">
                   <label className="text-xs font-medium">Procurement Officer:</label>
-                  <select
-                    value={signatureData.procurementOfficer}
-                    onChange={(e) => handleSignatureChange('procurementOfficer', e.target.value)}
-                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                  >
-                    <option value="">Select Officer</option>
-                    {storeInchargeList.map((admin, index) => (
-                      <option key={index} value={admin.name}>
-                        {admin.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1" />
                 </div>
-                <div>
-                  <label className="text-xs font-medium">Signature Date:</label>
-                  <input
-                    type="date"
-                    value={signatureData.procurementSignDate}
-                    onChange={(e) => handleSignatureChange('procurementSignDate', e.target.value)}
-                    className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                  />
-                </div>
-              </div>
-              <div>
                 <div className="mb-2">
                   <label className="text-xs font-medium">Material Issued on:</label>
                   <input
@@ -603,6 +573,10 @@ const RequestForm = () => {
                     placeholder="Enter voucher number"
                   />
                 </div>
+                
+              </div>
+              
+              <div>
                 <div className="mb-2">
                   <label className="text-xs font-medium">Defective material received:</label>
                   <select
@@ -641,8 +615,13 @@ const RequestForm = () => {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
+    </div>
+      
+
+      
 
       {/* Submit Button */}
       <div className="mt-6 text-right">

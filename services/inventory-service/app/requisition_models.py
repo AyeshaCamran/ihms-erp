@@ -43,8 +43,14 @@ class RequisitionItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     requisition_id = Column(Integer, ForeignKey("requisition.id"))
     item_id = Column(Integer)
-    requiredQty = Column(Integer)
-    issuedQty = Column(Integer, default=0)
+
+    type = Column(String)
+    itemname = Column(String)
+    required_qty = Column(Integer)     # ✅ change from requiredQty
+    available_qty = Column(Integer)    # ✅ change from availableQty
+    issued_qty = Column(Integer, default=0)  # ✅ change from issuedQty
+    bal_qty = Column(Integer)          # ✅ change from bal
+
     remarks = Column(Text, nullable=True)
 
     requisition = relationship("Requisition", back_populates="items")

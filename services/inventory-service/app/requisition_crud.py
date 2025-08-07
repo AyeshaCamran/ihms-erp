@@ -46,6 +46,7 @@ def create_requisition(db: Session, req_data: requisition_schemas.RequisitionCre
 
         db_item = requisition_models.RequisitionItem(
             requisition_id=requisition.id,
+            item_id=item.item_id, 
             type=inv_item.type,
             itemname=inv_item.itemname,
             required_qty=item.requiredQty,

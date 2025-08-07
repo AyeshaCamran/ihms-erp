@@ -1,56 +1,13 @@
-# from fastapi import FastAPI, Depends, HTTPException
-# from sqlalchemy.orm import Session
-# import database, models, schemas, auth
-# from passlib.context import CryptContext
-# from fastapi.middleware.cors import CORSMiddleware
-
-# models.Base.metadata.create_all(bind=database.engine)
-
-# app = FastAPI()
-# # ✅ Allow frontend (React) to talk to backend (FastAPI)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:5173"],  # your frontend port
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# def get_db():
-#     db = database.SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-# @app.post("/register")
-# def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-#     from models import User
-#     db_user = db.query(User).filter(User.username == user.username).first()
-#     if db_user:
-#         raise HTTPException(status_code=400, detail="Username already registered")
-#     hashed_pw = pwd_context.hash(user.password)
-#     new_user = User(username=user.username, hashed_password=hashed_pw, role=user.role)
-#     db.add(new_user)
-#     db.commit()
-#     db.refresh(new_user)
-#     return {"msg": "User created successfully"}
-
-# @app.post("/login")
-# def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
-#     from models import User
-#     db_user = db.query(User).filter(User.username == user.username).first()
-#     if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
-#         raise HTTPException(status_code=401, detail="Invalid credentials")
-#     token = auth.create_access_token(data={"sub": db_user.username, "role": db_user.role})
-#     return {"access_token": token, "token_type": "bearer"}
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from dotenv import load_dotenv
+import os
 import models, database
 from auth import router as auth_router  # ✅ Modular route import
+
+# ✅ Load environment variables
+load_dotenv()
 
 # ✅ Create DB tables if they don't exist
 models.Base.metadata.create_all(bind=database.engine)
@@ -69,3 +26,25 @@ app.add_middleware(
 # ✅ Attach auth routes to FastAPI
 app.include_router(auth_router)
 
+# ✅ Custom OpenAPI with Bearer Auth for Swagger UI
+def custom_openapi():
+    openapi_schema = get_openapi(
+        title="IHMS Auth API",
+        version="1.0.0",
+        description="Authentication service for IHMS ERP",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    }
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            method.setdefault("security", []).append({"BearerAuth": []})
+    return openapi_schema
+
+# ✅ Set the OpenAPI override explicitly
+app.openapi = custom_openapi

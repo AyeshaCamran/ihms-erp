@@ -3,15 +3,6 @@ from sqlalchemy.orm import Session
 from . import database, models, schemas, inventory_crud
 
 # Routers (inventory submodules)
-# from .stock_routes import router as stock_router
-# from .condemn_routes import router as condemn_router
-# from .return_routes import router as return_router
-# from .issue_routes import router as issue_router
-# from .stock_receive_routes import router as stock_receive_router
-# from .uom_routes import router as uom_router
-# from .rack_routes import router as rack_router
-# from .vendor_routes import router as vendor_router
-# from .threshold_routes import router as threshold_router
 from .requisition_routes import router as requisition_router
 from .inventory_routes import router as inventory_router  # ✅ updated inventory routes
 from .maintenance_routes import router as maintenance_router
