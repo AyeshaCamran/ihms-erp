@@ -20,10 +20,10 @@ def create_requisition(db: Session, req_data: requisition_schemas.RequisitionCre
         # Approval fields
         hod_status="Pending",
         dean_status="Pending",
-        stock_status="Pending",
+        inventory_status="Pending",
         hod_remarks=req_data.hod_remarks,
         dean_remarks=req_data.dean_remarks,
-        stock_remarks=req_data.stock_remarks,
+        inventory_remarks=req_data.inventory_remarks,
 
         # Office use
         request_received_on=datetime.now(KOLKATA),

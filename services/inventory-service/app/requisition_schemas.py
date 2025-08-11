@@ -45,7 +45,7 @@ class RequisitionCreate(BaseModel):
 
     hod_remarks: Optional[str] = None
     dean_remarks: Optional[str] = None
-    stock_remarks: Optional[str] = None
+    inventory_remarks: Optional[str] = None
 
     # Optional fields for Inventory Incharge
     request_received_on: Optional[datetime] = None
@@ -60,8 +60,8 @@ class RequisitionOut(RequisitionCreate):
     hod_remarks: Optional[str]
     dean_status: Optional[str]
     dean_remarks: Optional[str]
-    stock_status: Optional[str]
-    stock_remarks: Optional[str]
+    inventory_status: Optional[str]
+    inventory_remarks: Optional[str]
     items: List[RequisitionItemOut]
 
     class Config:

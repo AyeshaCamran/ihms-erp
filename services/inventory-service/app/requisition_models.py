@@ -25,8 +25,8 @@ class Requisition(Base):
     dean_status = Column(String, default="Pending")
     dean_remarks = Column(Text, nullable=True)
 
-    stock_status = Column(String, default="Pending")
-    stock_remarks = Column(Text, nullable=True)
+    inventory_status = Column(String, default="Pending")
+    inventory_remarks = Column(Text, nullable=True)
 
     # Office Use Only Section
     request_received_on = Column(DateTime, default=lambda: datetime.now(KOLKATA))

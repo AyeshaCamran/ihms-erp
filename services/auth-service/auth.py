@@ -28,7 +28,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         return {
             "email": payload.get("sub"),
             "role": payload.get("role"),
-            "name": payload.get("name")
+            "name": payload.get("name"),
+            "department": payload.get("department")
         }
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -64,6 +65,7 @@ def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
         "sub": user.email,
         "role": user.role,
         "name": user.name,
+        "department": user.department,
         "exp": expire
     }
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)

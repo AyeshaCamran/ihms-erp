@@ -50,8 +50,8 @@ def get_requisitions(
         query = query.filter(requisition_models.Requisition.hod_status == status)
     elif actual_role == "Dean" and status:
         query = query.filter(requisition_models.Requisition.dean_status == status)
-    elif actual_role == "Store" and status:
-        query = query.filter(requisition_models.Requisition.stock_status == status)
+    elif actual_role == "Inventory Admin" and status:
+        query = query.filter(requisition_models.Requisition.inventory_status == status)
 
     return query.all()
 
@@ -72,8 +72,8 @@ def approve_requisition(
         req.hod_status = "Approved"
     elif role == "Dean":
         req.dean_status = "Approved"
-    elif role == "Store":
-        req.stock_status = "Issued"
+    elif role == "Inventory Admin":
+        req.inventory_status = "Issued"
     else:
         raise HTTPException(status_code=400, detail="Invalid role")
 
@@ -99,9 +99,9 @@ def reject_requisition(
     elif role == "Dean":
         req.dean_status = "Rejected"
         req.dean_remarks = remarks
-    elif role == "Store":
-        req.stock_status = "Rejected"
-        req.stock_remarks = remarks
+    elif role == "Inventory Status":
+        req.inventory_status = "Rejected"
+        req.inventory_remarks = remarks
     else:
         raise HTTPException(status_code=400, detail="Invalid role")
 
