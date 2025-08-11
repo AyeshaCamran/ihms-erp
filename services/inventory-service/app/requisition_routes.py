@@ -107,3 +107,24 @@ def reject_requisition(
 
     db.commit()
     return {"message": f"{role} rejected requisition with remarks."}
+
+# ✅ 5. PATCH ROUTE  (after the reject route)
+@router.patch("/requisition/{req_id}")
+def update_requisition_status(
+    req_id: int,
+    updates: dict,
+    db: Session = Depends(get_db),
+    user: dict = Depends(auth_utils.get_current_user)
+):
+    req = db.query(requisition_models.Requisition).filter_by(id=req_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+    
+    # Update fields from the request body
+    for field, value in updates.items():
+        if hasattr(req, field):
+            setattr(req, field, value)
+    
+    db.commit()
+    db.refresh(req)
+    return req
