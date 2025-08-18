@@ -1,15 +1,15 @@
 import React from "react";
 
 const Panel = ({ title, children }) => (
-  <div className="bg-white border border-[#E6E6E7] rounded-lg shadow-sm">
-    <div className="px-4 py-2 bg-[#E6E6E7] font-semibold text-sm">{title}</div>
+  <div className="bg-white rounded-lg shadow-sm border border-[#E6E6E7]">
+    <div className="px-4 py-2 bg-[#E6E6E7] font-semibold text-sm text-[#05080B]">{title}</div>
     <div className="p-4 text-sm text-[#05080B]">{children}</div>
   </div>
 );
 
 export default function EMSDashboard() {
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 p-6 bg-[#E2E8F0]">
       {/* Left profile rail */}
       <div className="hidden lg:block">
         {/* <ProfileCard /> */}
