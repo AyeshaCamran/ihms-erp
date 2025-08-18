@@ -17,7 +17,7 @@ app = FastAPI()
 # ✅ CORS setup for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend port
+    allow_origins=["http://localhost:5173", "http://localhost:5174"], # Frontend port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,7 +29,7 @@ app.include_router(auth_router)
 # ✅ Custom OpenAPI with Bearer Auth for Swagger UI
 def custom_openapi():
     openapi_schema = get_openapi(
-        title="IHMS Auth API",
+        title="EMS Auth API",
         version="1.0.0",
         description="Authentication service for IHMS ERP",
         routes=app.routes,

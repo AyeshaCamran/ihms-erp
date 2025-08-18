@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock, Building2, ShieldCheck, Eye, EyeOff } from "lucide-react";
-import logo from "../../assets/iul-logo.png";
+import logo from "/Users/fuzailakhtar/Documents/ihms-erp/ems-frontend/src/assets/iul-logo.png";
 import { jwtDecode } from "jwt-decode";
 
 export default function Login({ setUser }) {
@@ -23,7 +23,7 @@ export default function Login({ setUser }) {
     "Psychiatry", "Radiology", "TB & Chest", "Casuality & Emergency Medicine"
   ];
 
-  const roles = ["Administrator", "HOD", "Dean", "Director", "Executive Director", "Inventory Admin"];
+  const roles = ["Administrator", "Incharge", "HOD", "Dean", "Competent Authority", "PO", "Inventory Admin"];
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -118,7 +118,7 @@ export default function Login({ setUser }) {
           </div>
 
           {/* ✅ Department (for HOD only) */}
-          {formData.role === "HOD" && (
+          {formData.role === "HOD" &&  "Incharge" && (
             <div className="relative mb-6">
               <Building2 className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
               <select

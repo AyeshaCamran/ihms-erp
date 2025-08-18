@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import Layout from "./components/layout/Layout";
 
-import Login from "./pages/Login/Login";
-import ForgotPassword from "./pages/Login/ForgotPassword";
+
 import Dashboard from "./pages/Dashboard/Dashboard";
 import InventoryList from "./pages/Inventory/InventoryList";
 import AddInventoryItem from "./pages/Inventory/AddInventoryItem";
@@ -37,8 +36,7 @@ function App() {
     <Router>
       <Routes>
         {/* ✅ Public Routes without Layout */}
-        <Route path="/" element={<Login setUser={setUser} />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+     
 
         {/* ✅ Protected Routes with Layout */}
         <Route
