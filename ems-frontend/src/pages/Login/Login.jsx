@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock, Building2, ShieldCheck, Eye, EyeOff } from "lucide-react";
-import logo from "/Users/fuzailakhtar/Documents/ihms-erp/ems-frontend/src/assets/iul-logo.png";
+import logo from "../../assets/iul-logo.png";
 import { jwtDecode } from "jwt-decode";
 
 export default function Login({ setUser }) {
@@ -95,7 +95,7 @@ export default function Login({ setUser }) {
         {/* ✅ Logo + Title */}
         <div className="flex flex-col items-center">
           <img src={logo} alt="Integral Logo" className="h-16 mb-10 md:mb-16" />
-          <h2 className="text-bluedark font-semibold text-lg">IHMS Login</h2>
+          <h2 className="text-bluedark font-semibold text-lg">EMS Login</h2>
         </div>
 
         {/* ✅ Form */}
@@ -118,7 +118,7 @@ export default function Login({ setUser }) {
           </div>
 
           {/* ✅ Department (for HOD only) */}
-          {formData.role === "HOD" &&  "Incharge" && (
+          {(formData.role === "HOD" || formData.role === "Incharge") && (
             <div className="relative mb-6">
               <Building2 className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
               <select
