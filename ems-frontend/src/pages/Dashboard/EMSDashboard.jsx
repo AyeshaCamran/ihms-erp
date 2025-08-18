@@ -1,49 +1,5 @@
 import React from "react";
 
-const ProfileCard = () => {
-  // You can hydrate these from your auth payload later
-  const info = {
-    code: "MA0203",
-    name: localStorage.getItem("user") || "Ayesha Camran",
-    designation: "Coordinator",
-    department: "Medical Administration",
-    doj: "18/06/2025",
-    email: "ayeshac@iul.ac.in",
-    mobile: "7906786232",
-  };
-
-  return (
-    <div className="w-[260px] bg-white border border-[#E6E6E7] rounded-lg overflow-hidden shadow-sm">
-      <div className="p-4 bg-[#233955] text-white">
-        <div className="w-20 h-20 rounded-md mx-auto bg-[#A2F2EE]" />
-      </div>
-      <div className="p-4 text-xs text-[#05080B] space-y-1">
-        <div><b>Employee Code :</b> {info.code}</div>
-        <div><b>Name :</b> {info.name}</div>
-        <div><b>Designation :</b> {info.designation}</div>
-        <div><b>Department :</b> {info.department}</div>
-        <div><b>Date of Joining :</b> {info.doj}</div>
-        <div><b>Official E-mail :</b> {info.email}</div>
-        <div><b>Mobile Number :</b> {info.mobile}</div>
-      </div>
-
-      <div className="border-t border-[#E6E6E7]">
-        <button className="w-full text-left px-4 py-3 text-sm hover:bg-[#F0F0F0]">Account Settings</button>
-        <button className="w-full text-left px-4 py-3 text-sm hover:bg-[#F0F0F0]">Change Password</button>
-      </div>
-
-      <div className="border-t border-[#E6E6E7]">
-        <div className="px-4 py-2 font-semibold text-sm bg-[#E6E6E7]">Quick Links</div>
-        <div className="flex flex-col">
-          {["Check Email", "University Website", "Student MIS", "Telephone Directory", "Phase-III"].map((q, i) => (
-            <a key={i} href="#" className="px-4 py-2 text-sm hover:bg-[#F0F0F0]">{q}</a>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const Panel = ({ title, children }) => (
   <div className="bg-white border border-[#E6E6E7] rounded-lg shadow-sm">
     <div className="px-4 py-2 bg-[#E6E6E7] font-semibold text-sm">{title}</div>
@@ -56,7 +12,7 @@ export default function EMSDashboard() {
     <div className="flex gap-6">
       {/* Left profile rail */}
       <div className="hidden lg:block">
-        <ProfileCard />
+        {/* <ProfileCard /> */}
       </div>
 
       {/* Main panels */}

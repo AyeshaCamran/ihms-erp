@@ -49,19 +49,19 @@ export default function Login({ setUser }) {
       const data = await response.json();
 
       if (response.ok) {
-        if (response.ok) {
-          const decoded = jwtDecode(data.access_token);
-          console.log("✅ Decoded Token:", decoded);
-          localStorage.setItem("token", data.access_token);
-          localStorage.setItem("user", decoded.name);  // or email if name not in token
-          setUser(decoded.name);
-          navigate("/dashboard");
-        }
-
+        const decoded = jwtDecode(data.access_token);
+        console.log("✅ Decoded Token:", decoded);
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user", decoded.name || decoded.email);
+        setUser(decoded.name || decoded.email);
+        
+        // Redirect to EMS home instead of dashboard
+        navigate("/ems/home");
       } else {
-        setError("Invalid credentials");
+        setError(data.detail || "Invalid credentials");
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError("Something went wrong. Try again.");
     }
   };
@@ -112,7 +112,7 @@ export default function Login({ setUser }) {
             >
               <option value="">Select Role</option>
               {roles.map((role) => (
-                <option key={role}>{role}</option>
+                <option key={role} value={role}>{role}</option>
               ))}
             </select>
           </div>
@@ -130,7 +130,7 @@ export default function Login({ setUser }) {
               >
                 <option value="">Select Department</option>
                 {departments.map((dept) => (
-                  <option key={dept}>{dept}</option>
+                  <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
             </div>
