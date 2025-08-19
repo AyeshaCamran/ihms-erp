@@ -11,13 +11,15 @@ import Login from "./pages/Login/Login";
 import ForgotPassword from "./pages/Login/ForgotPassword";
 import Dashboard from "/Users/fuzailakhtar/Documents/ihms-erp/ihms-frontend/src/pages/Dashboard/Dashboard";
 
-export default function App() {
+
+function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     // Reuse the same auth pattern you use in IHMS
     const token = localStorage.getItem("token");
     const name = localStorage.getItem("user");
+    
     if (token && name) setUser(name);
   }, []);
 
@@ -25,12 +27,7 @@ export default function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route 
-          path="/" 
-          element={
-            user ? <Navigate to="/ems/home" /> : <Login setUser={setUser} />
-          } 
-        />
+         <Route path="/" element={<Login setUser={setUser} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         
         {/* Protected Routes with Layout */}
@@ -54,3 +51,4 @@ export default function App() {
     </Router>
   );
 }
+export default App;

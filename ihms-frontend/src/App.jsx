@@ -40,9 +40,9 @@ function App() {
 
         {/* ✅ Protected Routes with Layout */}
         <Route
-          element={
-            user ? <Layout user={user} setUser={setUser} /> : <Navigate to="/" />
-          }
+          // element={
+          //   user ? <Layout user={user} setUser={setUser} /> : <Navigate to="/" />
+          // }
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<InventoryList />} />
@@ -65,6 +65,7 @@ function App() {
           <Route path="/maintenance/print/:id" element={<PrintMaintenanceForm />} />
           <Route path="/inventory/indent" element={<IndentPage />} />
           <Route path="/inventory/indent/indent-form" element={<IndentForm />} />
+        
         </Route>
       </Routes>
     </Router>

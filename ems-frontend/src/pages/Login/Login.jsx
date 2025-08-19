@@ -8,22 +8,22 @@ export default function Login({ setUser }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    department: "",
-    role: "",
+    // department: "",
+    // role: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const departments = [
-    "Anatomy", "Anesthesia", "Biochemistry", "Community Medicine", "Dentistry",
-    "Dermatology, Ven. & Lep.", "ENT", "Forensic Medicine", "General Medicine",
-    "General Surgery", "Microbiology", "Obstetrics & Gynecology", "Ophthalmology",
-    "Orthopedics", "Pathology", "Pediatrics", "Pharmacology", "Physiology",
-    "Psychiatry", "Radiology", "TB & Chest", "Casuality & Emergency Medicine"
-  ];
+  // const departments = [
+  //   "Anatomy", "Anesthesia", "Biochemistry", "Community Medicine", "Dentistry",
+  //   "Dermatology, Ven. & Lep.", "ENT", "Forensic Medicine", "General Medicine",
+  //   "General Surgery", "Microbiology", "Obstetrics & Gynecology", "Ophthalmology",
+  //   "Orthopedics", "Pathology", "Pediatrics", "Pharmacology", "Physiology",
+  //   "Psychiatry", "Radiology", "TB & Chest", "Casuality & Emergency Medicine"
+  // ];
 
-  const roles = ["Administrator", "Incharge", "HOD", "Dean", "Competent Authority", "PO", "Inventory Admin"];
+  // const roles = ["Administrator", "Incharge", "HOD", "Dean", "Competent Authority", "PO", "Inventory Admin"];
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -101,7 +101,7 @@ export default function Login({ setUser }) {
         {/* ✅ Form */}
         <form className="mb-6" onSubmit={handleSubmit}>
           {/* ✅ Role */}
-          <div className="relative mb-6">
+          {/* <div className="relative mb-6">
             <ShieldCheck className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
             <select
               name="role"
@@ -115,10 +115,10 @@ export default function Login({ setUser }) {
                 <option key={role} value={role}>{role}</option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* ✅ Department (for HOD only) */}
-          {(formData.role === "HOD" || formData.role === "Incharge") && (
+          {/* {(formData.role === "HOD" || formData.role === "Incharge") && (
             <div className="relative mb-6">
               <Building2 className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
               <select
@@ -134,7 +134,7 @@ export default function Login({ setUser }) {
                 ))}
               </select>
             </div>
-          )}
+          )} */}
 
           {/* ✅ Email */}
           <div className="relative mb-6">
