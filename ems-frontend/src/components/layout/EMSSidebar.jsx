@@ -21,6 +21,15 @@ const EMSSidebar = () => {
     mobile: "7906786232",
   };
 
+   // Function to handle IHMS navigation
+  const handleIHMSNavigation = () => {
+    // Replace with your IHMS app URL - adjust port as needed
+    const ihmsUrl = "http://localhost:5174/dashboard"; // or whatever port IHMS runs on
+    window.open(ihmsUrl, '_blank'); // Opens in new tab
+    // OR use window.location.href = ihmsUrl; // Opens in same tab
+  };
+
+
   return (
     <aside className="w-[300px] h-screen fixed bg-[#F0F0F0] shadow-sm flex flex-col justify-between">
       {/* Decorative background elements */}
@@ -122,8 +131,8 @@ const EMSSidebar = () => {
         </div> */}
 
         {/* IHMS Button with premium gradient */}
-        <NavLink
-          to="/dashboard"
+        <button
+          onClick={handleIHMSNavigation}
           title="Open IHMS"
           className="block w-full text-center rounded-lg px-1 py-2 font-bold text-[#E6E6E7] bg-[#233955] hover:bg-[#1a2a40] transition-all duration-300 hover:shadow-xl hover:scale-105 transform relative overflow-hidden group"
         >
@@ -134,7 +143,7 @@ const EMSSidebar = () => {
             <FiExternalLink className="group-hover:rotate-12 transition-transform duration-300" /> 
             IHMS
           </span>
-        </NavLink>
+        </button>
       </div>
     </aside>
   );

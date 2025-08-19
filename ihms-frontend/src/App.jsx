@@ -40,9 +40,9 @@ function App() {
 
         {/* ✅ Protected Routes with Layout */}
         <Route
-          // element={
-          //   user ? <Layout user={user} setUser={setUser} /> : <Navigate to="/" />
-          // }
+          element={
+            <Layout user={user} setUser={setUser} />
+          }
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<InventoryList />} />
@@ -67,6 +67,9 @@ function App() {
           <Route path="/inventory/indent/indent-form" element={<IndentForm />} />
         
         </Route>
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );

@@ -19,7 +19,7 @@ app = FastAPI(title="IHMS Inventory Service")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # frontend on localhost:5173
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],  # frontend on localhost:5173/5174
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
