@@ -37,7 +37,7 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/30">
+    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] h-screen w-screen overflow-hidden bg-[#F0F0F0]">
       {/* Sidebar desktop */}
       <div className="hidden md:block">
         <EMSSidebar />
@@ -47,11 +47,11 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
-            initial={{ x: -280 }}
+            initial={{ x: -300 }}
             animate={{ x: 0 }}
-            exit={{ x: -280 }}
+            exit={{ x: -300 }}
             transition={{ duration: 0.3 }}
-            className="fixed z-50 top-0 left-0 h-screen w-[280px] bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 shadow-2xl md:hidden"
+            className="fixed z-50 top-0 left-0 h-screen w-[300] bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 shadow-2xl md:hidden"
           >
             <EMSSidebar />
             <button
@@ -67,29 +67,29 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
       {/* Main */}
       <div className="flex flex-col h-screen w-full overflow-hidden">
         {/* Enhanced Topbar with glass effect */}
-        <header className="flex justify-between items-center bg-white/80 backdrop-blur-lg shadow-lg border-b border-white/50 px-4 md:px-6 py-4 relative">
+        <header className="flex justify-between items-center bg-[#F0F0F0] px-4 md:px-6 py-4 relative">
           {/* Decorative gradient line */}
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600"></div>
+          {/* <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600"></div> */}
           
           <div className="flex items-center gap-4">
             <button
-              className="md:hidden text-slate-700 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+              className="md:hidden text-slate-700 hover:text-[#233955] p-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
               onClick={() => setIsSidebarOpen(true)}
             >
               <FiMenu size={22} />
             </button>
             
             {/* Horizontal navigation menu */}
-            <nav className="hidden md:flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/30 shadow-sm">
+            <nav className="hidden md:flex justify-stretch items-center gap-4 rounded-lg px-8 py-2">
               {topMenu.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    `px-8 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                        : "text-slate-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700"
+                        ? "bg-[#233955] text-white shadow-md"
+                        : "text-slate-600 hover:bg-white hover:text-[#233955]"
                     }`
                   }
                 >
@@ -109,25 +109,25 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
 
           <div className="flex items-center gap-3 relative">
             {/* Enhanced action buttons */}
-            <button className="p-2.5 rounded-xl bg-white/70 backdrop-blur-sm border border-white/50 text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-lg transition-all duration-300 group">
+            <button className="relative p-2.5 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white hover:shadow-lg transition-all duration-300 group">
               <FiSettings size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             </button>
             
-            <button className="relative p-2.5 rounded-xl bg-white/70 backdrop-blur-sm border border-white/50 text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-lg transition-all duration-300 group">
+            <button className="relative p-2.5 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white hover:shadow-lg transition-all duration-300 group">
               <FiBell size={18} className="group-hover:animate-pulse" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FD4245] rounded-full border-2 border-white animate-pulse"></span>
             </button>
 
             {/* Enhanced user dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen((p) => !p)}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/70 backdrop-blur-sm border border-white/50 text-slate-600 hover:bg-white hover:shadow-lg transition-all duration-300 group"
+                className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition duration-300 group"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-lg">
+                <div className="w-8 h-8 rounded-full bg-[#A2F2EE] text-[#4B4D4F] font-bold flex items-center justify-center text-sm shadow-lg">
                   {user?.[0] || "U"}
                 </div>
-                <span className="text-sm font-semibold hidden sm:inline text-slate-700 group-hover:text-slate-900">
+                <span className="text-sm font-medium hover:text-white pr-1 hidden sm:inline">
                   Hi, {user}
                 </span>
                 <FiChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
@@ -136,16 +136,16 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: -5}}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-lg rounded-xl shadow-xl border border-white/50 z-50 overflow-hidden"
+                    className="bg-white rounded-lg shadow-md z-50"
                   >
-                    <div className="py-2">
+                    <div className="py-1 text-sm text-gray-700">
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-600 transition-all duration-200 w-full text-left font-medium"
+                        className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 cursor-pointer"
                       >
                         <FiLogOut size={16} />
                         Logout
@@ -161,9 +161,9 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
         {/* Enhanced page content with subtle gradient background */}
         <main className="flex-1 overflow-auto px-4 md:px-6 pt-6 pb-6 bg-gradient-to-br from-white/50 via-slate-50/30 to-blue-50/20 relative">
           {/* Subtle decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/20 to-indigo-100/20 rounded-full blur-3xl pointer-events-none"></div>
+          {/* <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/20 to-indigo-100/20 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-100/20 to-blue-100/20 rounded-full blur-3xl pointer-events-none"></div>
-          
+           */}
           <div className="relative z-10">
             <Outlet />
           </div>

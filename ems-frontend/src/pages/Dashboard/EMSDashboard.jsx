@@ -25,16 +25,7 @@ export default function EMSDashboard() {
   return (
     <div className="space-y-8">
       {/* Welcome section */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-2xl p-6 text-white relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-        <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-white/10 rounded-full"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-2xl font-bold mb-2">Welcome to Employee Management System</h1>
-          <p className="text-blue-100">Manage your employee tasks efficiently</p>
-        </div>
-      </div>
+      
 
       {/* Main dashboard content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
