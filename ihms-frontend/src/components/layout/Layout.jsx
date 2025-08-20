@@ -31,10 +31,27 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
   };
   const pageTitle = pathTitleMap[location.pathname] || "IHMS ERP";
 
+  // ✅ Updated SSO-aware logout function
   const handleLogout = () => {
+    // ✅ Clear all local storage
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    const wasSSOSession = localStorage.getItem("sso_session");
+    localStorage.removeItem("sso_session");
+    
+    // ✅ Reset user state
     setUser(null);
-    navigate("/");
+
+    // ✅ Redirect to EMS login page (since we're using SSO)
+    const emsLoginUrl = "http://localhost:5173/";
+    
+    if (wasSSOSession) {
+      // ✅ Add logout message for SSO sessions
+      window.location.href = `${emsLoginUrl}?message=You have been logged out of IHMS. Please login again to continue.`;
+    } else {
+      // ✅ Regular logout redirect
+      window.location.href = emsLoginUrl;
+    }
   };
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
@@ -133,7 +150,10 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
               </div>
             ) : (
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  // ✅ Redirect to EMS login if no user
+                  window.location.href = "http://localhost:5173/";
+                }}
                 className="bg-[#233955] text-white px-3 py-1 rounded hover:bg-opacity-90"
               >
                 Login

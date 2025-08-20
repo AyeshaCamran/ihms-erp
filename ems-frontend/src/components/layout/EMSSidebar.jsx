@@ -10,7 +10,7 @@ import {
 const EMSSidebar = () => {
   const [openEMS, setOpenEMS] = useState(true);
 
-  // Simple card data (hydrate later from auth)
+  // Simple card data (hydrate later from auth)+
   const info = {
     code: "MA0203",
     name: localStorage.getItem("user") || "Anatomy HOD",
@@ -21,12 +21,28 @@ const EMSSidebar = () => {
     mobile: "7906786232",
   };
 
-   // Function to handle IHMS navigation
+  // ✅ Updated function to handle SSO with token passing
   const handleIHMSNavigation = () => {
-    // Replace with your IHMS app URL - adjust port as needed
-    const ihmsUrl = "http://localhost:5174/dashboard"; // or whatever port IHMS runs on
-    window.open(ihmsUrl, '_blank'); // Opens in new tab
-    // OR use window.location.href = ihmsUrl; // Opens in same tab
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    
+    if (!token || !user) {
+      alert("Please login first to access IHMS");
+      return;
+    }
+
+    // ✅ Create SSO URL with token and user info
+    const ihmsBaseUrl = "http://localhost:5174"; // or your IHMS port
+    const ssoParams = new URLSearchParams({
+      sso_token: token,
+      sso_user: user,
+      from: "ems"
+    });
+    
+    const ihmsUrl = `${ihmsBaseUrl}/sso-login?${ssoParams.toString()}`;
+    
+    // ✅ Open in the same tab for seamless experience
+    window.location.href = ihmsUrl;
   };
 
 
@@ -102,17 +118,6 @@ const EMSSidebar = () => {
                   {q}
                 </a>
               ))}
-              {/* IHMS Button under Quick Links */}
-              {/* <NavLink
-                to="/dashboard"
-                title="Open IHMS"
-                className="block px-4 py-2.5 text-xs text-slate-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 transition-all duration-200 font-normal hover:translate-x-1"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <FiExternalLink size={14} /> 
-                  IHMS
-                </span>
-              </NavLink> */}
             </div>
           </div>
         </div>
@@ -120,20 +125,11 @@ const EMSSidebar = () => {
 
       {/* Footer actions + pinned IHMS button */}
       <div className="mt-auto p-4 space-y-4 relative z-10">
-        {/* Action buttons with glass effect */}
-        {/* <div className="flex items-center justify-center gap-3">
-          <button className="p-3 rounded-xl bg-white/70 backdrop-blur-sm text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-lg transition-all duration-300 border border-white/50 group">
-            <FiBell size={18} className="group-hover:animate-pulse" />
-          </button>
-          <button className="p-3 rounded-xl bg-white/70 backdrop-blur-sm text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-lg transition-all duration-300 border border-white/50 group">
-            <FiSettings size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-          </button>
-        </div> */}
 
-        {/* IHMS Button with premium gradient */}
+        {/* IHMS Button */}
         <button
           onClick={handleIHMSNavigation}
-          title="Open IHMS"
+          title="Open IHMS (Single Sign-On)"
           className="block w-full text-center rounded-lg px-1 py-2 font-bold text-[#E6E6E7] bg-[#233955] hover:bg-[#1a2a40] transition-all duration-300 hover:shadow-xl hover:scale-105 transform relative overflow-hidden group"
         >
           {/* Shine effect

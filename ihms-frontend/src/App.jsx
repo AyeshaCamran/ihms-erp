@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "./components/layout/Layout";
-
+import SSOHandler from "./components/auth/SSOHandler";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
 import InventoryList from "./pages/Inventory/InventoryList";
@@ -24,52 +25,72 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // ✅ Check for existing valid session on app start
     const token = localStorage.getItem("token");
     const name = localStorage.getItem("user");
 
     if (token && name) {
-      setUser(name); // Placeholder, can be extended
+      // ✅ Verify token is still valid before setting user
+      fetch("http://localhost:8000/auth/me", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(async (response) => {
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData.name || name);
+            console.log("✅ Existing session validated:", userData);
+          } else {
+            console.log("❌ Existing session invalid, clearing storage");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("sso_session");
+          }
+        })
+        .catch((error) => {
+          console.log("❌ Session validation error:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          localStorage.removeItem("sso_session");
+        });
     }
   }, []);
 
   return (
     <Router>
       <Routes>
-        {/* ✅ Public Routes without Layout */}
-     
+        {/* ✅ SSO Login Route - No protection needed */}
+        <Route path="/sso-login" element={<SSOHandler setUser={setUser} />} />
 
-        {/* ✅ Protected Routes with Layout */}
+        {/* ✅ All other routes are protected and require authentication */}
         <Route
+          path="/*"
           element={
-            <Layout user={user} setUser={setUser} />
+            <ProtectedRoute setUser={setUser}>
+              <Layout user={user} setUser={setUser} />
+            </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/inventory" element={<InventoryList />} />
-          <Route path="/inventory/add" element={<AddInventoryItem />} />
-          <Route path="/inventory/edit/:id" element={<EditInventoryItem />} />
-          <Route path="/inventory/category" element={<InventoryCategory />} />
-          <Route
-            path="/inventory/category/:categoryName"
-            element={<InventoryByCategory />}
-          />
-          <Route path="/inventory/requisition" element={<RequisitionPage />} />
-          <Route path="/inventory/requisition/request" element={<RequestForm />} />
-          <Route path="/inventory/maintenance" element={<MaintenancePage />} />
-          <Route
-            path="/inventory/maintenance/complaint"
-            element={<MaintenanceForm />}
-          />
-          <Route path="/inventory/stock" element={<StockPage />} />
-          <Route path="/inventory/stock/issue-slip" element={<IssueSlipForm />} />
-          <Route path="/maintenance/print/:id" element={<PrintMaintenanceForm />} />
-          <Route path="/inventory/indent" element={<IndentPage />} />
-          <Route path="/inventory/indent/indent-form" element={<IndentForm />} />
-        
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="inventory" element={<InventoryList />} />
+          <Route path="inventory/add" element={<AddInventoryItem />} />
+          <Route path="inventory/edit/:id" element={<EditInventoryItem />} />
+          <Route path="inventory/category" element={<InventoryCategory />} />
+          <Route path="inventory/category/:categoryName" element={<InventoryByCategory />} />
+          <Route path="inventory/requisition" element={<RequisitionPage />} />
+          <Route path="inventory/requisition/request" element={<RequestForm />} />
+          <Route path="inventory/maintenance" element={<MaintenancePage />} />
+          <Route path="inventory/maintenance/complaint" element={<MaintenanceForm />} />
+          <Route path="inventory/stock" element={<StockPage />} />
+          <Route path="inventory/stock/issue-slip" element={<IssueSlipForm />} />
+          <Route path="maintenance/print/:id" element={<PrintMaintenanceForm />} />
+          <Route path="inventory/indent" element={<IndentPage />} />
+          <Route path="inventory/indent/indent-form" element={<IndentForm />} />
         </Route>
-        {/* Default redirect */}
+
+        {/* ✅ Default redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );
