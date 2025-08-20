@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   FiSettings,
@@ -16,6 +16,35 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [userRole, setUserRole] = useState("Administrator"); // ✅ Default role
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // ✅ Fetch user role from token/auth service
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await fetch("http://localhost:8000/auth/me", {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            setUserRole(userData.role || "Administrator");
+            console.log("✅ User role fetched:", userData.role);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch user role:", error);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   const pathTitleMap = {
     "/dashboard": "Dashboard",
@@ -26,9 +55,8 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
     "/inventory/indent": "Indent",
     "/inventory/stock": "Stock",
     "/inventory/audit": "Audit & Compliance",
-
-
   };
+  
   const pageTitle = pathTitleMap[location.pathname] || "IHMS ERP";
 
   // ✅ Updated SSO-aware logout function
@@ -58,10 +86,10 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   return (
-  <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] h-screen w-screen overflow-hidden bg-white">
+    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] h-screen w-screen overflow-hidden bg-white">
       {/* Sidebar Section */}
       <div className="hidden md:block">
-        <Sidebar />
+        <Sidebar userRole={userRole} />
       </div>
 
       {/* Mobile Sidebar */}
@@ -74,7 +102,7 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
             transition={{ duration: 0.3 }}
             className="fixed z-50 top-0 left-0 h-screen w-[280px] bg-white shadow-lg md:hidden"
           >
-            <Sidebar />
+            <Sidebar userRole={userRole} />
             <button
               onClick={toggleSidebar}
               className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
@@ -120,9 +148,15 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
                   <span className="w-6 h-6 rounded-full bg-[#A2F2EE] text-black hover:text-white font-semibold flex items-center justify-center text-xs">
                     {user[0]}
                   </span>
-                  <span className="text-sm font-medium hover:text-white pr-1 hidden sm:inline">
-                    Hi, {user}
-                  </span>
+                  <div className="hidden sm:block text-left">
+                    <span className="text-sm font-medium hover:text-white pr-1">
+                      Hi, {user}
+                    </span>
+                    {/* ✅ Display user role */}
+                    <div className="text-xs text-gray-500 hover:text-gray-300">
+                      {userRole}
+                    </div>
+                  </div>
                   <FiChevronDown size={14} />
                 </button>
 
@@ -136,6 +170,9 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
                       className="absolute right-0 mt-2 w-44 bg-white rounded-md shadow-md z-50"
                     >
                       <ul className="py-1 text-sm text-gray-700">
+                        <li className="px-4 py-2 text-xs text-gray-500 border-b">
+                          Role: {userRole}
+                        </li>
                         <li
                           onClick={handleLogout}
                           className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"

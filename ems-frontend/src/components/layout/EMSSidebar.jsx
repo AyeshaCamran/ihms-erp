@@ -15,7 +15,7 @@ const EMSSidebar = () => {
     code: "MA0203",
     name: localStorage.getItem("user") || "Anatomy HOD",
     designation: "Coordinator",
-    department: "Medical Administration",
+    department: "Medical Administrator",
     doj: "18/06/2025",
     email: "ayeshac@iul.ac.in",
     mobile: "7906786232",
