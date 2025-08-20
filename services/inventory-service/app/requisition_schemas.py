@@ -1,4 +1,4 @@
-# ✅ Fixed requisition_schemas.py
+# ✅ STEP 4: Updated requisition_schemas.py with complete workflow
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Union
 from datetime import date, datetime
@@ -47,9 +47,11 @@ class RequisitionCreate(BaseModel):
     justification: Optional[str] = None
     items: List[RequisitionItemCreate]
 
-    # Optional approval fields
+    # Optional approval fields (for admin use)
     hod_remarks: Optional[str] = None
     dean_remarks: Optional[str] = None
+    ca_remarks: Optional[str] = None
+    po_remarks: Optional[str] = None
     inventory_remarks: Optional[str] = None
 
     # Optional office use fields
@@ -76,13 +78,41 @@ class RequisitionOut(BaseModel):
     requirement_types: Optional[str]  # ✅ String in database
     justification: Optional[str]
     
-    # Approval status fields
+    # ✅ STEP 4: Complete approval workflow status fields
+    created_by: Optional[str]
+    
+    # HOD Approval (Step 2)
     hod_status: Optional[str] = "Pending"
     hod_remarks: Optional[str]
+    hod_approved_at: Optional[datetime]
+    hod_approved_by: Optional[str]
+    
+    # Dean Approval (Step 3)
     dean_status: Optional[str] = "Pending"
     dean_remarks: Optional[str]
+    dean_approved_at: Optional[datetime]
+    dean_approved_by: Optional[str]
+    
+    # Competent Authority Approval (Step 4)
+    ca_status: Optional[str] = "Pending"
+    ca_remarks: Optional[str]
+    ca_approved_at: Optional[datetime]
+    ca_approved_by: Optional[str]
+    
+    # PO Approval (Step 5)
+    po_status: Optional[str] = "Pending"
+    po_remarks: Optional[str]
+    po_approved_at: Optional[datetime]
+    po_approved_by: Optional[str]
+    
+    # Inventory Admin (Step 6)
     inventory_status: Optional[str] = "Pending"
     inventory_remarks: Optional[str]
+    inventory_approved_at: Optional[datetime]
+    inventory_approved_by: Optional[str]
+    
+    # Overall status
+    overall_status: Optional[str] = "Pending"
     
     # Office use fields
     request_received_on: Optional[datetime]
@@ -91,8 +121,17 @@ class RequisitionOut(BaseModel):
     defective_material_received: Optional[str]
     store_incharge: Optional[str]
     
+    # Audit fields
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    
     items: List[RequisitionItemOut]
 
     class Config:
         orm_mode = True
         allow_population_by_field_name = True
+
+# ✅ STEP 4: New schema for approval actions
+class ApprovalAction(BaseModel):
+    status: str  # "Approved" or "Rejected"
+    remarks: Optional[str] = None
