@@ -18,6 +18,7 @@ import {
   FiDatabase,
   FiEdit,
   FiCheckCircle,
+  FiShoppingCart,
 } from "react-icons/fi";
 
 const Sidebar = ({ userRole = "Administrator" }) => {
@@ -56,6 +57,13 @@ const Sidebar = ({ userRole = "Administrator" }) => {
         icon: <FiAlertCircle />, 
         to: "/inventory/maintenance",
         roles: ["HOD", "Incharge", "Dean", "Competent Authority", "Administrator", "PO", "Inventory Admin"]
+      },
+      { 
+        key: "purchase", 
+        label: "Purchase Management", 
+        icon: <FiShoppingCart />, 
+        to: "/inventory/purchase",
+        roles: ["Dean", "Competent Authority", "Administrator", "PO", "Inventory Admin"]
       },
       { 
         key: "stock", 

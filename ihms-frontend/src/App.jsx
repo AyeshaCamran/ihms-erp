@@ -21,6 +21,8 @@ import StockPage from "./pages/Inventory/StockPage";
 import IssueSlipForm from "./pages/Inventory/IssueSlipForm";
 import IndentPage from "./pages/Inventory/IndentPage";
 import IndentForm from "./pages/Inventory/IndentForm";
+import PurchasePage from "./pages/Inventory/PurchasePage";
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -83,7 +85,10 @@ function App() {
     
     // Audit access
     AUDIT: ["Dean", "Competent Authority", "Administrator", "PO", "Inventory Admin"],
-    
+
+    // Purchase access
+    PURCHASE: ["Dean", "Competent Authority", "Administrator", "PO", "Inventory Admin"],
+
     // Messages access
     MESSAGES: ["HOD", "Incharge", "Dean", "Competent Authority", "Administrator", "PO", "Inventory Admin"],
     
@@ -260,6 +265,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.REQUISITION}>
                 <RequisitionView />
+              </RoleBasedRoute>
+            } 
+          />
+
+          {/* ✅ Purchase Management Pages */}
+          <Route 
+            path="inventory/purchase" 
+            element={
+              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.PURCHASE}>
+                <PurchasePage />
               </RoleBasedRoute>
             } 
           />
