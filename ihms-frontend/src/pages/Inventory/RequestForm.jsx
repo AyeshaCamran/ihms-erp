@@ -12,11 +12,75 @@ const RequestForm = () => {
   const [hodList, setHodList] = useState([]);
   const [storeInchargeList, setStoreInchargeList] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // success, error, null
+  const [submitStatus, setSubmitStatus] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
+  // ✅ Enhanced print configuration
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
+    documentTitle: `Requisition-Form-${formNo}`,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 0.5in;
+      }
+      @media print {
+        body { 
+          font-family: Arial, sans-serif;
+          color: black !important;
+          background: white !important;
+        }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        table { border-collapse: collapse !important; }
+        th, td { border: 1px solid black !important; padding: 8px !important; }
+        .print-header { 
+          display: flex !important; 
+          justify-content: space-between !important; 
+          align-items: center !important; 
+          margin-bottom: 20px !important;
+          border-bottom: 2px solid black !important;
+          padding-bottom: 10px !important;
+        }
+        .signature-section {
+          border: 1px solid black !important;
+          padding: 15px !important;
+          margin-top: 20px !important;
+        }
+        .form-grid {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 15px !important;
+        }
+        input[type="checkbox"]:checked:after {
+          content: "✓" !important;
+          position: absolute !important;
+          left: 2px !important;
+          top: -2px !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+        }
+        input[type="checkbox"] {
+          position: relative !important;
+          width: 14px !important;
+          height: 14px !important;
+          border: 1px solid black !important;
+          margin-right: 8px !important;
+        }
+        .checkbox-label {
+          display: flex !important;
+          align-items: center !important;
+          margin-bottom: 4px !important;
+        }
+      }
+    `,
+    onBeforeGetContent: () => {
+      // Add print-specific content before printing
+      return Promise.resolve();
+    },
+    onAfterPrint: () => {
+      console.log("✅ Print completed");
+    },
   });
 
   const [formRows, setFormRows] = useState([
@@ -315,23 +379,6 @@ const RequestForm = () => {
     alert("Draft saved locally! You can continue editing later.");
   };
 
-  // ✅ Load draft function
-  const loadDraft = () => {
-    const draftKey = `requisition_draft_${formNo}`;
-    const savedDraft = localStorage.getItem(draftKey);
-    if (savedDraft) {
-      try {
-        const draftData = JSON.parse(savedDraft);
-        setFormData(draftData.formData);
-        setFormRows(draftData.formRows);
-        setSignatureData(draftData.signatureData);
-        alert("Draft loaded successfully!");
-      } catch (error) {
-        console.error("Error loading draft:", error);
-      }
-    }
-  };
-
   const handleSubmit = async () => {
     // ✅ Validate form first
     if (!validateForm()) {
@@ -458,7 +505,7 @@ const RequestForm = () => {
   return (
     <div className="p-6 bg-white max-w-6xl mx-auto text-sm">
       {/* ✅ Enhanced header with actions */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 no-print">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Create New Requisition</h1>
           <p className="text-gray-600">Form No: {formNo} | User: {currentUser.name} ({currentUser.role})</p>
@@ -485,7 +532,7 @@ const RequestForm = () => {
 
       {/* ✅ Status messages */}
       {submitStatus === 'success' && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md no-print">
           <div className="flex items-center">
             <CheckCircle className="text-green-500 mr-2" size={20} />
             <div>
@@ -497,7 +544,7 @@ const RequestForm = () => {
       )}
 
       {submitStatus === 'error' && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md no-print">
           <div className="flex items-center">
             <AlertCircle className="text-red-500 mr-2" size={20} />
             <div>
@@ -510,7 +557,7 @@ const RequestForm = () => {
 
       {/* ✅ Validation errors display */}
       {Object.keys(validationErrors).length > 0 && submitStatus !== 'error' && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md no-print">
           <div className="flex items-start">
             <AlertCircle className="text-yellow-500 mr-2 mt-0.5" size={20} />
             <div>
@@ -525,8 +572,10 @@ const RequestForm = () => {
         </div>
       )}
 
-      <div ref={printRef}>
-        <div className="flex justify-between items-center mb-4 border-b pb-2">
+      {/* ✅ PRINTABLE CONTENT */}
+      <div ref={printRef} className="print-container">
+        {/* Header for print */}
+        <div className="print-header flex justify-between items-center mb-6 border-b-2 border-black pb-4">
           <img src={logo} alt="Integral Logo" className="h-16" />
           <div className="text-center flex-grow">
             <p className="text-xl font-bold">Requisition Form</p>
@@ -534,18 +583,19 @@ const RequestForm = () => {
           </div>
           <div className="text-sm text-right font-semibold">
             Integral University<br />Kursi Road, Lucknow-226026
-            <div className="text-sm font-semibold">Form No: {formNo}</div>
+            <div className="text-sm font-semibold mt-2">Form No: {formNo}</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        {/* Form information grid */}
+        <div className="form-grid grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block font-semibold">Department:</label>
             <select
               value={formData.department}
               onChange={(e) => setFormData({ ...formData, department: e.target.value })}
               className="mt-1 p-2 w-full border rounded"
-              disabled={currentUser?.role === "Incharge"} // ✅ Lock for Incharge
+              disabled={currentUser?.role === "Incharge"}
             >
               {[
                 "Anatomy", "Anesthesia", "Biochemistry", "Community Medicine", "Dentistry",
@@ -598,14 +648,15 @@ const RequestForm = () => {
           </div>
         </div>
 
-        <div className="flex gap-6 mb-4">
+        {/* Material types and requirements */}
+        <div className="flex gap-6 mb-6">
           <div>
             <p className="font-semibold">Material Type: <span className="text-red-500">*</span></p>
             {validationErrors.materialTypes && (
-              <p className="text-red-500 text-xs mb-1">{validationErrors.materialTypes}</p>
+              <p className="text-red-500 text-xs mb-1 no-print">{validationErrors.materialTypes}</p>
             )}
             {["Consumables", "Non Consumables", "Capital"].map((material_types) => (
-              <label key={material_types} className="block">
+              <label key={material_types} className="checkbox-label flex items-center mb-1">
                 <input
                   type="checkbox"
                   value={material_types}
@@ -618,23 +669,23 @@ const RequestForm = () => {
                         ? [...prev.materialTypes, material_types]
                         : prev.materialTypes.filter((t) => t !== material_types)
                     }));
-                    // Clear validation error
                     if (validationErrors.materialTypes) {
                       setValidationErrors(prev => ({ ...prev, materialTypes: null }));
                     }
                   }}
-                />{" "}
-                {material_types}
+                  className="mr-2"
+                />
+                <span>{material_types}</span>
               </label>
             ))}
           </div>
           <div>
             <p className="font-semibold">Material Requirement: <span className="text-red-500">*</span></p>
             {validationErrors.requirementTypes && (
-              <p className="text-red-500 text-xs mb-1">{validationErrors.requirementTypes}</p>
+              <p className="text-red-500 text-xs mb-1 no-print">{validationErrors.requirementTypes}</p>
             )}
             {["Monthly", "Quarterly", "Semester/Yearly"].map((requirement_types) => (
-              <label key={requirement_types} className="block">
+              <label key={requirement_types} className="checkbox-label flex items-center mb-1">
                 <input
                   type="checkbox"
                   value={requirement_types}
@@ -647,49 +698,49 @@ const RequestForm = () => {
                         ? [...prev.requirementTypes, requirement_types]
                         : prev.requirementTypes.filter((r) => r !== requirement_types)
                     }));
-                    // Clear validation error
                     if (validationErrors.requirementTypes) {
                       setValidationErrors(prev => ({ ...prev, requirementTypes: null }));
                     }
                   }}
-                />{" "}
-                {requirement_types}
+                  className="mr-2"
+                />
+                <span>{requirement_types}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* ✅ Enhanced table with better validation feedback */}
-        <div className="overflow-x-auto">
+        {/* Items table */}
+        <div className="overflow-x-auto mb-6">
           {validationErrors.items && (
-            <p className="text-red-500 text-sm mb-2">{validationErrors.items}</p>
+            <p className="text-red-500 text-sm mb-2 no-print">{validationErrors.items}</p>
           )}
           {validationErrors.duplicateItems && (
-            <p className="text-red-500 text-sm mb-2">{validationErrors.duplicateItems}</p>
+            <p className="text-red-500 text-sm mb-2 no-print">{validationErrors.duplicateItems}</p>
           )}
           {validationErrors.insufficientStock && (
-            <p className="text-yellow-600 text-sm mb-2">{validationErrors.insufficientStock}</p>
+            <p className="text-yellow-600 text-sm mb-2 no-print">{validationErrors.insufficientStock}</p>
           )}
-          <table className="min-w-full border border-gray-300 text-xs text-left">
+          <table className="min-w-full border-collapse border border-black text-xs">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border px-2 py-1">S.No</th>
-                <th className="border px-2 py-1">Type</th>
-                <th className="border px-2 py-1">Item Name <span className="text-red-500">*</span></th>
-                <th className="border px-2 py-1">Required Qty <span className="text-red-500">*</span></th>
-                <th className="border px-2 py-1">Available Qty</th>
-                <th className="border px-2 py-1">Issued Qty</th>
-                <th className="border px-2 py-1">Bal. Qty</th>
-                <th className="border px-2 py-1">Remarks</th>
-                <th className="border px-2 py-1">Action</th>
+                <th className="border border-black px-2 py-2">S.No</th>
+                <th className="border border-black px-2 py-2">Type</th>
+                <th className="border border-black px-2 py-2">Item Name <span className="text-red-500">*</span></th>
+                <th className="border border-black px-2 py-2">Required Qty <span className="text-red-500">*</span></th>
+                <th className="border border-black px-2 py-2">Available Qty</th>
+                <th className="border border-black px-2 py-2">Issued Qty</th>
+                <th className="border border-black px-2 py-2">Bal. Qty</th>
+                <th className="border border-black px-2 py-2">Remarks</th>
+                <th className="border border-black px-2 py-2 no-print">Action</th>
               </tr>
             </thead>
             <tbody>
               {formRows.map((row, index) => (
                 <tr key={index} className={row.requiredQty > row.availableQty ? "bg-yellow-50" : ""}>
-                  <td className="border px-2 py-1">{index + 1}</td>
-                  <td className="border px-2 py-1">{row.type || "-"}</td>
-                  <td className="border px-2 py-1">
+                  <td className="border border-black px-2 py-2 text-center">{index + 1}</td>
+                  <td className="border border-black px-2 py-2">{row.type || "-"}</td>
+                  <td className="border border-black px-2 py-2">
                     <select
                       className="w-full border p-1 rounded"
                       value={row.itemname}
@@ -703,32 +754,32 @@ const RequestForm = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="border px-2 py-1">
+                  <td className="border border-black px-2 py-2">
                     <input
                       type="number"
                       min="1"
                       value={row.requiredQty}
                       onChange={(e) => handleRowChange(index, "requiredQty", e.target.value)}
-                      className={`w-full outline-none ${
+                      className={`w-full outline-none text-center ${
                         row.requiredQty > row.availableQty ? "bg-yellow-100" : ""
                       }`}
                       placeholder="Qty"
                     />
                   </td>
-                  <td className="border px-2 py-1 text-center">{row.availableQty || "-"}</td>
-                  <td className="border px-2 py-1">
+                  <td className="border border-black px-2 py-2 text-center">{row.availableQty || "-"}</td>
+                  <td className="border border-black px-2 py-2">
                     <input
                       type="number"
                       min="0"
                       value={row.issuedQty}
                       onChange={(e) => handleRowChange(index, "issuedQty", e.target.value)}
-                      className="w-full outline-none"
+                      className="w-full outline-none text-center"
                       disabled={!isAdmin}
                       placeholder="0"
                     />
                   </td>
-                  <td className="border px-2 py-1 text-center">{row.balQty || "-"}</td>
-                  <td className="border px-2 py-1">
+                  <td className="border border-black px-2 py-2 text-center">{row.balQty || "-"}</td>
+                  <td className="border border-black px-2 py-2">
                     <input
                       type="text"
                       value={row.remarks}
@@ -737,7 +788,7 @@ const RequestForm = () => {
                       placeholder="Optional"
                     />
                   </td>
-                  <td className="border px-2 py-1">
+                  <td className="border border-black px-2 py-2 no-print">
                     {formRows.length > 1 && (
                       <button
                         onClick={() => handleRemoveRow(index)}
@@ -751,213 +802,223 @@ const RequestForm = () => {
               ))}
             </tbody>
           </table>
-          <button onClick={handleAddRow} className="mt-2 text-blue-600 hover:underline text-sm">
+          <button onClick={handleAddRow} className="mt-2 text-blue-600 hover:underline text-sm no-print">
             + Add Item
           </button>
         </div>
 
         {/* Justification */}
-        <div className="mt-4">
+        <div className="mb-6">
           <label className="block font-semibold">Justification for Large Quantity:</label>
           <textarea
-            className="w-full border mt-1 p-2 rounded"
+            className="w-full border mt-1 p-2 rounded min-h-[60px]"
             placeholder="In case of the above mentioned material (items) required in huge quantity, please justify the uses:"
             value={formData.justification}
             onChange={(e) => setFormData({ ...formData, justification: e.target.value })}
           />
         </div>
 
-        {/* Enhanced Approval & Signature Section with Workflow Information */}
-        <div className="mt-6 text-sm text-gray-800">
-          <div className="border border-gray-300 p-4 rounded-md space-y-4">
-            {/* ✅ Workflow Information */}
-            <div className="bg-blue-50 p-3 rounded-md">
-              <h4 className="font-semibold text-blue-800 mb-2">Approval Workflow</h4>
-              <div className="text-xs text-blue-700">
-                <p><strong>Step 1:</strong> Incharge creates requisition (You are here)</p>
-                <p><strong>Step 2:</strong> HOD reviews and approves/rejects</p>
-                <p><strong>Step 3:</strong> Dean reviews and approves/rejects</p>
-                <p><strong>Step 4:</strong> Competent Authority reviews and approves/rejects</p>
-                <p><strong>Step 5:</strong> Purchase Officer (PO) reviews and approves/rejects</p>
-                <p><strong>Step 6:</strong> Inventory Admin processes and issues materials</p>
+        {/* Approval & Signature Section */}
+        <div className="signature-section border border-black p-4 rounded-md space-y-4">
+          {/* Workflow Information */}
+          <div className="bg-blue-50 p-3 rounded-md no-print">
+            <h4 className="font-semibold text-blue-800 mb-2">Approval Workflow</h4>
+            <div className="text-xs text-blue-700">
+              <p><strong>Step 1:</strong> Incharge creates requisition (You are here)</p>
+              <p><strong>Step 2:</strong> HOD reviews and approves/rejects</p>
+              <p><strong>Step 3:</strong> Dean reviews and approves/rejects</p>
+              <p><strong>Step 4:</strong> Competent Authority reviews and approves/rejects</p>
+              <p><strong>Step 5:</strong> Purchase Officer (PO) reviews and approves/rejects</p>
+              <p><strong>Step 6:</strong> Inventory Admin processes and issues materials</p>
+            </div>
+          </div>
+
+          <div className="flex justify-between">
+            <div className="flex-1">
+              <p className="font-semibold mb-4">Approval Process:</p>
+              
+              {/* HOD Section */}
+              <div className="form-grid grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-xs font-medium">H.O.D. / Incharge Name:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-100 min-h-[25px]">
+                    {signatureData.hodName || "[To be filled]"}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature & Date:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                    [Digital signature after approval]
+                  </div>
+                </div>
+              </div>
+
+              {/* Dean Section */}
+              <div className="form-grid grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-xs font-medium">Dean / Director / MS:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                    [To be filled during approval]
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Signature & Date:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                    [Auto-filled on approval]
+                  </div>
+                </div>
+              </div>
+
+              {/* CA and PO Section */}
+              <div className="form-grid grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium">Competent Authority:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                    [Digital approval system]
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Purchase Officer:</label>
+                  <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                    [Digital approval system]
+                  </div>
+                </div>
               </div>
             </div>
+            
+            <div className="text-right ml-6">
+              <p className="font-semibold">Approved/Not Approved</p>
+              <div className="mt-4 space-y-2">
+                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
+                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
+                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
+                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
+              </div>
+            </div>
+          </div>
 
-            <div className="flex justify-between">
-              <div>
-                <p className="font-semibold">Approval Process:</p>
-                
-                {/* HOD Section with Input Fields */}
-                <div className="grid grid-cols-2 gap-2 mt-2">
+          {/* Important Notes */}
+          <div className="text-xs mt-4 bg-yellow-50 p-3 rounded border">
+            <p className="font-semibold">Important Notes:</p>
+            <ol className="list-decimal list-inside ml-4 space-y-1">
+              <li>
+                <strong>For procuring Machinery, Equipment & Lab Chemicals,</strong> approval by Competent Authority is mandatory.
+              </li>
+              <li>
+                Please use separate requisition for different material types (consumables, non-consumables, capital).
+              </li>
+              <li>
+                In case of non-consumables, defective material should be returned.
+              </li>
+              <li>
+                All approvals will be tracked digitally through the system.
+              </li>
+            </ol>
+          </div>
+
+          {/* Office Use Only Section - Only for Inventory Admin */}
+          {isAdmin && ( 
+            <div className="border-t border-black pt-4">
+              <p className="text-center font-semibold text-gray-600 mb-3">For Office Use Only</p>
+              <div className="form-grid grid grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-medium">H.O.D. / Incharge Name:</label>
+                    <label className="text-xs font-medium">Request received on:</label>
                     <input
-                      type="text"
-                      value={signatureData.hodName}
-                      onChange={(e) => handleSignatureChange('hodName', e.target.value)}
-                      className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1 bg-gray-100"
-                      placeholder="Auto-filled based on department"
-                      readOnly
+                      type="date"
+                      value={signatureData.requestReceivedOn}
+                      onChange={(e) => handleSignatureChange('requestReceivedOn', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium">Signature of HOD:</label>
-                    <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1 bg-gray-50 flex items-center justify-center text-gray-400">
-                      [Digital signature after approval]
+                    <label className="text-xs font-medium">Procurement Officer:</label>
+                    <input
+                      type="text"
+                      value={signatureData.procurementOfficer}
+                      onChange={(e) => handleSignatureChange('procurementOfficer', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                      placeholder="Enter procurement officer name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Material Issued on:</label>
+                    <input
+                      type="date"
+                      value={signatureData.materialIssuedOn}
+                      onChange={(e) => handleSignatureChange('materialIssuedOn', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Voucher No.:</label>
+                    <input
+                      type="text"
+                      value={signatureData.voucherNo}
+                      onChange={(e) => handleSignatureChange('voucherNo', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                      placeholder="Enter voucher number"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium">Defective material received:</label>
+                    <select
+                      value={signatureData.defectiveMaterialReceived}
+                      onChange={(e) => handleSignatureChange('defectiveMaterialReceived', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                    >
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Store Incharge:</label>
+                    <select
+                      value={signatureData.storeIncharge}
+                      onChange={(e) => handleSignatureChange('storeIncharge', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                    >
+                      <option value="">Select Incharge</option>
+                      {storeInchargeList.map((admin, index) => (
+                        <option key={index} value={admin.name}>
+                          {admin.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Signature Date:</label>
+                    <input
+                      type="date"
+                      value={signatureData.storeSignDate}
+                      onChange={(e) => handleSignatureChange('storeSignDate', e.target.value)}
+                      className="w-full border border-black px-2 py-1 text-xs rounded mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Signature:</label>
+                    <div className="w-full border border-black px-2 py-1 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
+                      [Digital signature]
                     </div>
                   </div>
                 </div>
-
-                <br />
-
-                {/* Dean Section with Input Fields */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs font-medium">Dean / Director / MS:</label>
-                    <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1 bg-gray-50 flex items-center justify-center text-gray-400">
-                      [To be filled during approval]
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Date:</label>
-                    <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1 bg-gray-50 flex items-center justify-center text-gray-400">
-                      [Auto-filled on approval]
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold">Approved/Not Approved</p>
-                <p className="text-xs text-gray-500 mt-1">Status will be updated automatically</p>
               </div>
             </div>
+          )}
+        </div>
 
-            {/* PVC and VC Section with Input Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-medium">Competent Authority:</label>
-                <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1 bg-gray-50 flex items-center justify-center text-gray-400">
-                  [Digital approval system]
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium">Purchase Officer:</label>
-                <div className="w-full border border-gray-300 px-2 py-1 text-xs rounded h-6.5 mt-1 bg-gray-50 flex items-center justify-center text-gray-400">
-                  [Digital approval system]
-                </div>
-              </div>
-            </div>
-
-            <div className="text-[13px] mt-3 bg-yellow-50 p-3 rounded">
-              <p className="font-semibold">Important Notes:</p>
-              <ol className="list-decimal list-inside ml-4 space-y-1">
-                <li>
-                  <strong>For procuring Machinery, Equipment & Lab Chemicals,</strong> approval by Competent Authority is mandatory.
-                </li>
-                <li>
-                  Please use separate requisition for different material types (consumables, non-consumables, capital).
-                </li>
-                <li>
-                  In case of non-consumables, defective material should be returned.
-                </li>
-                <li>
-                  All approvals will be tracked digitally through the system.
-                </li>
-              </ol>
-            </div>
-
-            {/* Enhanced Office Use Only Section - Only for Inventory Admin */}
-            {isAdmin && ( 
-              <div className="mt-4 border-t pt-3">
-                <p className="text-center font-semibold text-gray-600">For Office Use Only</p>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Request received on:</label>
-                      <input
-                        type="date"
-                        value={signatureData.requestReceivedOn}
-                        onChange={(e) => handleSignatureChange('requestReceivedOn', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Procurement Officer:</label>
-                      <input
-                        type="text"
-                        value={signatureData.procurementOfficer}
-                        onChange={(e) => handleSignatureChange('procurementOfficer', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                        placeholder="Enter procurement officer name"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Material Issued on:</label>
-                      <input
-                        type="date"
-                        value={signatureData.materialIssuedOn}
-                        onChange={(e) => handleSignatureChange('materialIssuedOn', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Voucher No.:</label>
-                      <input
-                        type="text"
-                        value={signatureData.voucherNo}
-                        onChange={(e) => handleSignatureChange('voucherNo', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                        placeholder="Enter voucher number"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Defective material received:</label>
-                      <select
-                        value={signatureData.defectiveMaterialReceived}
-                        onChange={(e) => handleSignatureChange('defectiveMaterialReceived', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                      >
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                      </select>
-                    </div>
-                    <div className="mb-2">
-                      <label className="text-xs font-medium">Store Incharge:</label>
-                      <select
-                        value={signatureData.storeIncharge}
-                        onChange={(e) => handleSignatureChange('storeIncharge', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                      >
-                        <option value="">Select Incharge</option>
-                        {storeInchargeList.map((admin, index) => (
-                          <option key={index} value={admin.name}>
-                            {admin.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Signature Date:</label>
-                      <input
-                        type="date"
-                        value={signatureData.storeSignDate}
-                        onChange={(e) => handleSignatureChange('storeSignDate', e.target.value)}
-                        className="w-full border border-gray-300 px-2 py-1 text-xs rounded mt-1"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Print footer */}
+        <div className="print-only hidden text-center text-xs mt-6 pt-4 border-t border-gray-300">
+          <p>This is a computer-generated document. No physical signature is required.</p>
+          <p>Generated on: {new Date().toLocaleString()} | Form ID: {formNo}</p>
         </div>
       </div>
 
-      {/* ✅ Enhanced submit section with better UX */}
-      <div className="mt-6 border-t pt-4">
+      {/* Submit section - Not printed */}
+      <div className="mt-6 border-t pt-4 no-print">
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
             <p><strong>Created by:</strong> {currentUser.name} ({currentUser.role})</p>
@@ -1003,7 +1064,7 @@ const RequestForm = () => {
           </div>
         </div>
         
-        {/* ✅ Submission info */}
+        {/* Submission info */}
         <div className="mt-4 text-xs text-gray-500 bg-gray-50 p-3 rounded">
           <p><strong>What happens next:</strong></p>
           <p>1. Your requisition will be sent to {signatureData.hodName || "HOD"} for approval</p>
