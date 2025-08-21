@@ -2,10 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import logo from "../../assets/iul green logo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Printer, Save, AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { useReactToPrint } from "react-to-print";
 
 const RequestForm = () => {
-  const printRef = useRef();
   const [currentUser, setCurrentUser] = useState(null);
   const [formNo] = useState(Math.floor(10000 + Math.random() * 90000));
   const [items, setItems] = useState([]);
@@ -15,73 +13,7 @@ const RequestForm = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // ✅ Enhanced print configuration
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Requisition-Form-${formNo}`,
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 0.5in;
-      }
-      @media print {
-        body { 
-          font-family: Arial, sans-serif;
-          color: black !important;
-          background: white !important;
-        }
-        .no-print { display: none !important; }
-        .print-only { display: block !important; }
-        table { border-collapse: collapse !important; }
-        th, td { border: 1px solid black !important; padding: 8px !important; }
-        .print-header { 
-          display: flex !important; 
-          justify-content: space-between !important; 
-          align-items: center !important; 
-          margin-bottom: 20px !important;
-          border-bottom: 2px solid black !important;
-          padding-bottom: 10px !important;
-        }
-        .signature-section {
-          border: 1px solid black !important;
-          padding: 15px !important;
-          margin-top: 20px !important;
-        }
-        .form-grid {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          gap: 15px !important;
-        }
-        input[type="checkbox"]:checked:after {
-          content: "✓" !important;
-          position: absolute !important;
-          left: 2px !important;
-          top: -2px !important;
-          font-size: 12px !important;
-          font-weight: bold !important;
-        }
-        input[type="checkbox"] {
-          position: relative !important;
-          width: 14px !important;
-          height: 14px !important;
-          border: 1px solid black !important;
-          margin-right: 8px !important;
-        }
-        .checkbox-label {
-          display: flex !important;
-          align-items: center !important;
-          margin-bottom: 4px !important;
-        }
-      }
-    `,
-    onBeforeGetContent: () => {
-      // Add print-specific content before printing
-      return Promise.resolve();
-    },
-    onAfterPrint: () => {
-      console.log("✅ Print completed");
-    },
-  });
+ 
 
   const [formRows, setFormRows] = useState([
     {
@@ -505,7 +437,7 @@ const RequestForm = () => {
   return (
     <div className="p-6 bg-white max-w-6xl mx-auto text-sm">
       {/* ✅ Enhanced header with actions */}
-      <div className="flex justify-between items-center mb-6 no-print">
+      <div className="flex justify-between items-center mb-6 ">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Create New Requisition</h1>
           <p className="text-gray-600">Form No: {formNo} | User: {currentUser.name} ({currentUser.role})</p>
@@ -520,7 +452,7 @@ const RequestForm = () => {
             Save Draft
           </button>
           <button
-            onClick={handlePrint}
+            onClick={() => window.print()}
             className="flex items-center gap-2 text-gray-700 hover:text-black px-3 py-2 bg-gray-200 rounded"
             title="Print Form"
           >
@@ -532,7 +464,7 @@ const RequestForm = () => {
 
       {/* ✅ Status messages */}
       {submitStatus === 'success' && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md no-print">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
           <div className="flex items-center">
             <CheckCircle className="text-green-500 mr-2" size={20} />
             <div>
@@ -544,7 +476,7 @@ const RequestForm = () => {
       )}
 
       {submitStatus === 'error' && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md no-print">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
           <div className="flex items-center">
             <AlertCircle className="text-red-500 mr-2" size={20} />
             <div>
@@ -557,7 +489,7 @@ const RequestForm = () => {
 
       {/* ✅ Validation errors display */}
       {Object.keys(validationErrors).length > 0 && submitStatus !== 'error' && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md no-print">
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <div className="flex items-start">
             <AlertCircle className="text-yellow-500 mr-2 mt-0.5" size={20} />
             <div>
@@ -573,9 +505,9 @@ const RequestForm = () => {
       )}
 
       {/* ✅ PRINTABLE CONTENT */}
-      <div ref={printRef} className="print-container">
+      <div className="print-container">
         {/* Header for print */}
-        <div className="print-header flex justify-between items-center mb-6 border-b-2 border-black pb-4">
+        <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-4">
           <img src={logo} alt="Integral Logo" className="h-16" />
           <div className="text-center flex-grow">
             <p className="text-xl font-bold">Requisition Form</p>
@@ -588,7 +520,7 @@ const RequestForm = () => {
         </div>
 
         {/* Form information grid */}
-        <div className="form-grid grid grid-cols-2 gap-4 mb-6">
+        <div className="form-grid grid grid-cols-3 gap-4 mb-6">
           <div>
             <label className="block font-semibold">Department:</label>
             <select
@@ -653,7 +585,7 @@ const RequestForm = () => {
           <div>
             <p className="font-semibold">Material Type: <span className="text-red-500">*</span></p>
             {validationErrors.materialTypes && (
-              <p className="text-red-500 text-xs mb-1 no-print">{validationErrors.materialTypes}</p>
+              <p className="text-red-500 text-xs mb-1">{validationErrors.materialTypes}</p>
             )}
             {["Consumables", "Non Consumables", "Capital"].map((material_types) => (
               <label key={material_types} className="checkbox-label flex items-center mb-1">
@@ -682,7 +614,7 @@ const RequestForm = () => {
           <div>
             <p className="font-semibold">Material Requirement: <span className="text-red-500">*</span></p>
             {validationErrors.requirementTypes && (
-              <p className="text-red-500 text-xs mb-1 no-print">{validationErrors.requirementTypes}</p>
+              <p className="text-red-500 text-xs mb-1">{validationErrors.requirementTypes}</p>
             )}
             {["Monthly", "Quarterly", "Semester/Yearly"].map((requirement_types) => (
               <label key={requirement_types} className="checkbox-label flex items-center mb-1">
@@ -713,13 +645,13 @@ const RequestForm = () => {
         {/* Items table */}
         <div className="overflow-x-auto mb-6">
           {validationErrors.items && (
-            <p className="text-red-500 text-sm mb-2 no-print">{validationErrors.items}</p>
+            <p className="text-red-500 text-sm mb-2">{validationErrors.items}</p>
           )}
           {validationErrors.duplicateItems && (
-            <p className="text-red-500 text-sm mb-2 no-print">{validationErrors.duplicateItems}</p>
+            <p className="text-red-500 text-sm mb-2">{validationErrors.duplicateItems}</p>
           )}
           {validationErrors.insufficientStock && (
-            <p className="text-yellow-600 text-sm mb-2 no-print">{validationErrors.insufficientStock}</p>
+            <p className="text-yellow-600 text-sm mb-2">{validationErrors.insufficientStock}</p>
           )}
           <table className="min-w-full border-collapse border border-black text-xs">
             <thead className="bg-gray-100">
@@ -732,7 +664,7 @@ const RequestForm = () => {
                 <th className="border border-black px-2 py-2">Issued Qty</th>
                 <th className="border border-black px-2 py-2">Bal. Qty</th>
                 <th className="border border-black px-2 py-2">Remarks</th>
-                <th className="border border-black px-2 py-2 no-print">Action</th>
+                <th className="border border-black px-2 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -788,7 +720,7 @@ const RequestForm = () => {
                       placeholder="Optional"
                     />
                   </td>
-                  <td className="border border-black px-2 py-2 no-print">
+                  <td className="border border-black px-2 py-2">
                     {formRows.length > 1 && (
                       <button
                         onClick={() => handleRemoveRow(index)}
@@ -802,7 +734,7 @@ const RequestForm = () => {
               ))}
             </tbody>
           </table>
-          <button onClick={handleAddRow} className="mt-2 text-blue-600 hover:underline text-sm no-print">
+          <button onClick={handleAddRow} className="mt-2 text-blue-600 hover:underline text-sm">
             + Add Item
           </button>
         </div>
@@ -821,7 +753,7 @@ const RequestForm = () => {
         {/* Approval & Signature Section */}
         <div className="signature-section border border-black p-4 rounded-md space-y-4">
           {/* Workflow Information */}
-          <div className="bg-blue-50 p-3 rounded-md no-print">
+          <div className="bg-blue-50 p-3 rounded-md">
             <h4 className="font-semibold text-blue-800 mb-2">Approval Workflow</h4>
             <div className="text-xs text-blue-700">
               <p><strong>Step 1:</strong> Incharge creates requisition (You are here)</p>
@@ -1009,16 +941,10 @@ const RequestForm = () => {
             </div>
           )}
         </div>
-
-        {/* Print footer */}
-        <div className="print-only hidden text-center text-xs mt-6 pt-4 border-t border-gray-300">
-          <p>This is a computer-generated document. No physical signature is required.</p>
-          <p>Generated on: {new Date().toLocaleString()} | Form ID: {formNo}</p>
-        </div>
       </div>
 
-      {/* Submit section - Not printed */}
-      <div className="mt-6 border-t pt-4 no-print">
+      {/* Submit section */}
+      <div className="mt-6 border-t pt-4">
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
             <p><strong>Created by:</strong> {currentUser.name} ({currentUser.role})</p>

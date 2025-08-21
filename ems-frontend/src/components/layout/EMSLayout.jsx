@@ -122,9 +122,9 @@ const EMSLayout = ({ user = "Employee", setUser }) => {
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen((p) => !p)}
-                className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition duration-300 group"
+                className="flex items-center gap-2 px-2 py-2 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition duration-300"
               >
-                <div className="w-8 h-8 rounded-full bg-[#A2F2EE] text-[#4B4D4F] font-bold flex items-center justify-center text-sm shadow-lg">
+                <div className="w-6 h-6 rounded-lg bg-[#A2F2EE] text-[#4B4D4F] font-bold flex items-center justify-center text-sm shadow-lg">
                   {user?.[0] || "U"}
                 </div>
                 <span className="text-sm font-medium hover:text-white pr-1 hidden sm:inline">

@@ -130,11 +130,11 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
           </div>
 
           <div className="flex items-center gap-3 relative">
-            <button className="p-2 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition">
+            <button className="p-2.5 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition">
               <FiSettings size={18} />
             </button>
 
-            <button className="relative p-2 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition">
+            <button className="relative p-2.5 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition">
               <FiBell size={18} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FD4245] rounded-full border-2 border-white" />
             </button>
@@ -143,9 +143,9 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
               <div className="relative">
                 <button
                   onClick={toggleDropdown}
-                  className="flex items-center gap-2 px-2 py-1 rounded-full bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition"
+                  className="flex items-center gap-2 px-2 py-2 rounded-lg bg-[#E6E6E7] hover:bg-[#233955] text-[#4B4D4F] hover:text-white transition"
                 >
-                  <span className="w-6 h-6 rounded-full bg-[#A2F2EE] text-black hover:text-white font-semibold flex items-center justify-center text-xs">
+                  <span className="w-6 h-6 rounded-lg bg-[#A2F2EE] text-black hover:text-white font-semibold flex items-center justify-center text-xs">
                     {user[0]}
                   </span>
                   <div className="hidden sm:block text-left">
@@ -153,9 +153,7 @@ const Layout = ({ user = "Alfredo Westervelt", setUser }) => {
                       Hi, {user}
                     </span>
                     {/* ✅ Display user role */}
-                    <div className="text-xs text-gray-500 hover:text-gray-300">
-                      {userRole}
-                    </div>
+                    
                   </div>
                   <FiChevronDown size={14} />
                 </button>
