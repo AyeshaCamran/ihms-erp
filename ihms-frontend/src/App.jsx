@@ -14,11 +14,11 @@ import InventoryCategory from "./pages/Inventory/InventoryCategory";
 import InventoryByCategory from "./pages/Inventory/InventoryByCategory";
 import RequisitionPage from "./pages/Inventory/RequisitionPage";
 import RequestForm from "./pages/Inventory/RequestForm";
+import RequisitionView from "./pages/Inventory/RequisitionView";
 import MaintenancePage from "./pages/Inventory/MaintenancePage";
 import MaintenanceForm from "./pages/Inventory/MaintenanceForm";
 import StockPage from "./pages/Inventory/StockPage";
 import IssueSlipForm from "./pages/Inventory/IssueSlipForm";
-import PrintMaintenanceForm from "./pages/Inventory/PrintMaintenanceForm";
 import IndentPage from "./pages/Inventory/IndentPage";
 import IndentForm from "./pages/Inventory/IndentForm";
 
@@ -254,15 +254,16 @@ function App() {
             } 
           />
 
-          {/* ✅ Maintenance Print (Special case) */}
+          {/* {Requisition View} */}
           <Route 
-            path="maintenance/print/:id" 
+            path="inventory/requisition/view/:id" 
             element={
-              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.MAINTENANCE}>
-                <PrintMaintenanceForm />
+              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.REQUISITION}>
+                <RequisitionView />
               </RoleBasedRoute>
             } 
           />
+
 
           {/* ✅ Future Pages - Role-protected placeholders */}
           <Route 
