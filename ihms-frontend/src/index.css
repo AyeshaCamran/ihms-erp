@@ -1,5 +1,23 @@
 @import "tailwindcss";
-
+/* Global Print Styles */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  @page {
+    margin: 0.5in;
+  }
+}
 
 :root {
   /* Colors */
