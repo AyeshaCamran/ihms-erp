@@ -182,10 +182,14 @@ const MaterialVoucherForm = () => {
       const token = localStorage.getItem("token");
       
       // Prepare payload
-      const payload = {
-        ...formData,
-        date: new Date(formData.date).toISOString(),
-      };
+      let payload;
+      if (isEdit) {
+        payload = { ...formData, date: new Date(formData.date).toISOString() };
+      } else {
+        // server will generate voucher_no
+        const { voucher_no, ...rest } = formData;
+        payload = { ...rest, date: formData.date, req_date: formData.req_date };
+      }
 
       const url = isEdit 
         ? `http://localhost:8001/inventory/material-vouchers/${voucherId}`
@@ -342,7 +346,7 @@ const MaterialVoucherForm = () => {
               <div>
                 <label className="block font-medium">Date :</label>
                 <input
-                  type="text"
+                  type="date"
                   value={formData.req_date}
                   onChange={(e) => handleFormChange('req_date', e.target.value)}
                   className="border-b border-black bg-transparent text-center w-32"

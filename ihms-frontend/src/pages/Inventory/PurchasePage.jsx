@@ -248,7 +248,7 @@ const PurchasePage = () => {
       </div>
 
       {/* ✅ Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -281,20 +281,6 @@ const PurchasePage = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved Requisitions</p>
               <p className="text-2xl font-semibold text-gray-900">{requisitions.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="h-8 w-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold">₹</div>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Purchase Amount</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                ₹{vouchers.reduce((sum, v) => sum + parseFloat(v.bill_amount || 0), 0).toLocaleString()}
-              </p>
             </div>
           </div>
         </div>

@@ -40,13 +40,14 @@ def create_material_voucher(db: Session, voucher_data: material_voucher_schemas.
     # Generate voucher number
     voucher_no = generate_voucher_number(db)
     
+    data = voucher_data.dict(exclude_unset=True)
+    data.pop("voucher_no", None)  # ensure no duplicate
     voucher = material_voucher_models.MaterialVoucher(
-        **voucher_data.dict(),
+        **data,
         voucher_no=voucher_no,
         created_by=user.get("name"),
         status="Issued"
     )
-    
     db.add(voucher)
     db.commit()
     db.refresh(voucher)
