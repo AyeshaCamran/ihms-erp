@@ -49,7 +49,7 @@ const PurchasePage = () => {
       const token = localStorage.getItem("token");
 
       // Fetch Purchase Vouchers
-      const vouchersResponse = await fetch("http://localhost:8001/inventory/vouchers", {
+      const vouchersResponse = await fetch("http://localhost:8001/inventory/materiaL-vouchers", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from . import database, models, schemas, inventory_crud
-
+from . import material_voucher_models
 
 # Routers (inventory submodules)
 from .requisition_routes import router as requisition_router
@@ -40,4 +40,4 @@ app.add_middleware(
 app.include_router(requisition_router, prefix="/inventory", tags=["Requisition"])
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])  
 app.include_router(maintenance_router, prefix="/inventory", tags=["Maintenance"])  
-app.include_router(material_voucher_router, prefix="/inventory", tags=["material-vouchers"])
+app.include_router(material_voucher_router, prefix="/inventory", tags=["Material Vouchers"])

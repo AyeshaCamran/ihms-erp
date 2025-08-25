@@ -104,7 +104,7 @@ const MaterialVoucherForm = () => {
         voucher_no: voucher.voucher_no || "",
         date: voucher.date ? voucher.date.split('T')[0] : "",
         req_form_no: voucher.req_form_no || "",
-        req_date: voucher.req_date || "",
+        req_date: voucher.req_date ? new Date(voucher.req_date).toISOString().split('T')[0] : "",
         authorised_by: voucher.authorised_by || "",
         procurement_officer: voucher.procurement_officer || "",
         material_issued_by: voucher.material_issued_by || "",
@@ -141,28 +141,31 @@ const MaterialVoucherForm = () => {
 
   // Validate form
   const validateForm = () => {
-    const errors = {};
+  const errors = {};
 
-    // Required field validations
-    if (!formData.req_form_no.trim()) {
-      errors.req_form_no = "Requisition form number is required";
-    }
+  // Required field validations
+  if (!formData.req_form_no.trim()) {
+    errors.req_form_no = "Requisition form number is required";
+  }
+  if (!formData.authorised_by.trim()) {
+    errors.authorised_by = "Authorised by field is required";
+  }
+  if (!formData.procurement_officer.trim()) {
+    errors.procurement_officer = "Procurement officer is required";
+  }
+  if (!formData.material_issued_by.trim()) {  // Missing validation
+    errors.material_issued_by = "Material issued by field is required";
+  }
+  if (!formData.store_keeper.trim()) {  // Missing validation
+    errors.store_keeper = "Store keeper field is required";
+  }
+  if (!formData.received_by_name.trim()) {
+    errors.received_by_name = "Received by name is required";
+  }
 
-    if (!formData.authorised_by.trim()) {
-      errors.authorised_by = "Authorised by field is required";
-    }
-
-    if (!formData.procurement_officer.trim()) {
-      errors.procurement_officer = "Procurement officer is required";
-    }
-
-    if (!formData.received_by_name.trim()) {
-      errors.received_by_name = "Received by name is required";
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  setValidationErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   // Handle form submission
   const handleSubmit = async () => {

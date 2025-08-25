@@ -1,10 +1,10 @@
 # services/inventory-service/app/material_voucher_models.py
 from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from .database import Base
 from datetime import datetime
 from pytz import timezone
 
-Base = declarative_base()
+
 KOLKATA = timezone("Asia/Kolkata")
 
 class MaterialVoucher(Base):
