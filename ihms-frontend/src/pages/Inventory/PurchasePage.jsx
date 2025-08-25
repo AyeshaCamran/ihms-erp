@@ -1,4 +1,4 @@
-// Updated src/pages/Inventory/PurchasePage.jsx - Add Material Voucher Integration
+// Updated and Corrected src/pages/Inventory/PurchasePage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -10,7 +10,7 @@ import {
   Edit, 
   Trash2,
   FileText,
-  Receipt // New icon for Material Voucher
+  Receipt 
 } from "lucide-react";
 
 const PurchasePage = () => {
@@ -20,13 +20,13 @@ const PurchasePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [vouchers, setVouchers] = useState([]);
-  const [materialVouchers, setMaterialVouchers] = useState([]); // NEW: Material Vouchers
-  const [requisitions, setRequisitions] = useState([]); // NEW: Approved Requisitions
+  const [materialVouchers, setMaterialVouchers] = useState([]);
+  const [requisitions, setRequisitions] = useState([]);
   const [filteredVouchers, setFilteredVouchers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [activeTab, setActiveTab] = useState("purchase"); // NEW: Tab management
-  const [currentUser, setCurrentUser] = useState(null); // NEW: Current user for role checking
+  const [activeTab, setActiveTab] = useState("purchase");
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Get current user for role-based access
   useEffect(() => {
@@ -41,56 +41,82 @@ const PurchasePage = () => {
     }
   }, []);
 
-  // Fetch all data
+  // Fetch all data with enhanced error handling
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem("token");
 
-      // Fetch Purchase Vouchers
-      const vouchersResponse = await fetch("http://localhost:8001/inventory/materiaL-vouchers", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      if (!vouchersResponse.ok) {
-        throw new Error("Failed to fetch purchase vouchers");
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
 
-      const vouchersData = await vouchersResponse.json();
-      setVouchers(Array.isArray(vouchersData) ? vouchersData : []);
+      // Fetch Purchase Vouchers with error handling
+      try {
+        const vouchersResponse = await fetch("http://localhost:8001/inventory/vouchers", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
 
-      // NEW: Fetch Material Vouchers
-      const materialVouchersResponse = await fetch("http://localhost:8001/inventory/material-vouchers", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
+        if (vouchersResponse.ok) {
+          const vouchersData = await vouchersResponse.json();
+          setVouchers(Array.isArray(vouchersData) ? vouchersData : []);
+        } else {
+          console.warn("Failed to fetch purchase vouchers:", vouchersResponse.status);
+          setVouchers([]);
         }
-      });
-
-      if (materialVouchersResponse.ok) {
-        const materialVouchersData = await materialVouchersResponse.json();
-        setMaterialVouchers(Array.isArray(materialVouchersData) ? materialVouchersData : []);
+      } catch (voucherError) {
+        console.error("Purchase vouchers fetch error:", voucherError);
+        setVouchers([]);
       }
 
-      // NEW: Fetch Approved Requisitions for Material Voucher Creation
-      const requisitionsResponse = await fetch("http://localhost:8001/inventory/requisition?status=Approved", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
+      // Fetch Material Vouchers with error handling
+      try {
+        const materialVouchersResponse = await fetch("http://localhost:8001/inventory/material-vouchers", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
 
-      if (requisitionsResponse.ok) {
-        const requisitionsData = await requisitionsResponse.json();
-        setRequisitions(Array.isArray(requisitionsData) ? requisitionsData : []);
+        if (materialVouchersResponse.ok) {
+          const materialVouchersData = await materialVouchersResponse.json();
+          setMaterialVouchers(Array.isArray(materialVouchersData) ? materialVouchersData : []);
+        } else {
+          console.warn("Failed to fetch material vouchers:", materialVouchersResponse.status);
+          setMaterialVouchers([]);
+        }
+      } catch (materialError) {
+        console.error("Material vouchers fetch error:", materialError);
+        setMaterialVouchers([]);
+      }
+
+      // Fetch Approved Requisitions with error handling
+      try {
+        const requisitionsResponse = await fetch("http://localhost:8001/inventory/requisition?status=Approved", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (requisitionsResponse.ok) {
+          const requisitionsData = await requisitionsResponse.json();
+          setRequisitions(Array.isArray(requisitionsData) ? requisitionsData : []);
+        } else {
+          console.warn("Failed to fetch requisitions:", requisitionsResponse.status);
+          setRequisitions([]);
+        }
+      } catch (requisitionError) {
+        console.error("Requisitions fetch error:", requisitionError);
+        setRequisitions([]);
       }
 
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error in fetchData:", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -150,7 +176,8 @@ const PurchasePage = () => {
   };
 
   const handleDelete = async (voucherId) => {
-    if (!window.confirm("Are you sure you want to delete this voucher?")) return;
+    if (!window.confirm("Are you sure you want to delete this voucher?"))
+      return;
 
     try {
       const token = localStorage.getItem("token");
@@ -173,7 +200,7 @@ const PurchasePage = () => {
     }
   };
 
-  // NEW: Material Voucher Actions
+  // Material Voucher Actions
   const handleMaterialView = (materialVoucherId) => {
     navigate(`/inventory/purchase/material-voucher/${materialVoucherId}`);
   };
@@ -183,7 +210,8 @@ const PurchasePage = () => {
   };
 
   const handleMaterialDelete = async (materialVoucherId) => {
-    if (!window.confirm("Are you sure you want to delete this material voucher?")) return;
+    if (!window.confirm("Are you sure you want to delete this material voucher?"))
+      return;
 
     try {
       const token = localStorage.getItem("token");
@@ -206,7 +234,7 @@ const PurchasePage = () => {
     }
   };
 
-  // NEW: Create Material Voucher from Requisition
+  // Create Material Voucher from Requisition
   const handleCreateMaterialVoucher = (requisition) => {
     navigate("/inventory/purchase/material-voucher/new", {
       state: { requisition }
@@ -248,7 +276,7 @@ const PurchasePage = () => {
         <p className="text-gray-600">Manage purchase vouchers and material issuing vouchers</p>
       </div>
 
-      {/* NEW: Tabs */}
+      {/* Tabs */}
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
@@ -273,7 +301,7 @@ const PurchasePage = () => {
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
-              disabled={currentUser?.role !== "PO"} // Only Purchase Office can access material vouchers
+              disabled={currentUser?.role !== "PO"}
               title={currentUser?.role !== "PO" ? "Only Purchase Office can access Material Vouchers" : ""}
             >
               <div className={`flex items-center gap-2 ${currentUser?.role !== "PO" ? "opacity-50" : ""}`}>
@@ -290,7 +318,7 @@ const PurchasePage = () => {
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
-              disabled={currentUser?.role !== "PO"} // Only Purchase Office can access requisitions for voucher creation
+              disabled={currentUser?.role !== "PO"}
               title={currentUser?.role !== "PO" ? "Only Purchase Office can create Material Vouchers from Requisitions" : ""}
             >
               <div className={`flex items-center gap-2 ${currentUser?.role !== "PO" ? "opacity-50" : ""}`}>
@@ -339,6 +367,7 @@ const PurchasePage = () => {
                   <option value="Pending">Pending</option>
                   <option value="Approved">Approved</option>
                   <option value="Completed">Completed</option>
+                  <option value="Issued">Issued</option>
                 </select>
               </div>
             )}
@@ -397,7 +426,7 @@ const PurchasePage = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
+                    Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -410,12 +439,7 @@ const PurchasePage = () => {
                     <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                       <FileText size={48} className="mx-auto mb-4 text-gray-300" />
                       <p>No purchase vouchers found</p>
-                      <p className="text-sm mt-1">
-                        {searchTerm || statusFilter !== "All" 
-                          ? "Try adjusting your search or filter"
-                          : "Create your first purchase voucher to get started"
-                        }
-                      </p>
+                      <p className="text-sm mt-1">Click "Add Purchase Voucher" to create your first voucher</p>
                     </td>
                   </tr>
                 ) : (
@@ -423,21 +447,18 @@ const PurchasePage = () => {
                     <tr key={voucher.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {voucher.voucher_number || `VCH-${voucher.id}`}
+                          {voucher.voucher_number || `PV-${voucher.id}`}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {voucher.po_number && `PO: ${voucher.po_number}`}
-                          {voucher.invoice_number && ` | INV: ${voucher.invoice_number}`}
+                          PO: {voucher.po_number || 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{voucher.vendor_name}</div>
-                        <div className="text-sm text-gray-500">{voucher.vendor_gst}</div>
+                        <div className="text-sm text-gray-900">{voucher.vendor_name || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">Invoice: {voucher.invoice_number || 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          ₹{parseFloat(voucher.bill_amount || 0).toLocaleString()}
-                        </div>
+                        <div className="text-sm text-gray-900">₹{voucher.bill_amount || '0'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -517,12 +538,7 @@ const PurchasePage = () => {
                     <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                       <Receipt size={48} className="mx-auto mb-4 text-gray-300" />
                       <p>No material vouchers found</p>
-                      <p className="text-sm mt-1">
-                        {searchTerm || statusFilter !== "All" 
-                          ? "Try adjusting your search or filter"
-                          : "Create your first material voucher to get started"
-                        }
-                      </p>
+                      <p className="text-sm mt-1">Create material vouchers from approved requisitions</p>
                     </td>
                   </tr>
                 ) : (
@@ -533,16 +549,20 @@ const PurchasePage = () => {
                           {voucher.voucher_no || `MV-${voucher.id}`}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Material: {voucher.material_status || 'Complete'}
+                          Authorized: {voucher.authorised_by || 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{voucher.req_form_no}</div>
-                        <div className="text-sm text-gray-500">{voucher.req_date}</div>
+                        <div className="text-sm text-gray-900">{voucher.req_form_no || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">
+                          {voucher.req_date ? new Date(voucher.req_date).toLocaleDateString() : 'N/A'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{voucher.received_by_name}</div>
-                        <div className="text-sm text-gray-500">{voucher.received_by_emp_code}</div>
+                        <div className="text-sm text-gray-900">{voucher.received_by_name || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">
+                          Material: {voucher.material_status || 'Complete'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -653,22 +673,13 @@ const PurchasePage = () => {
                         {new Date(requisition.date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => navigate(`/inventory/requisition/view/${requisition.id}`)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="View Requisition"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleCreateMaterialVoucher(requisition)}
-                            className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
-                            title="Create Material Voucher"
-                          >
-                            Create Voucher
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleCreateMaterialVoucher(requisition)}
+                          className="inline-flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 text-xs"
+                        >
+                          <Plus size={12} />
+                          Create Voucher
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -679,8 +690,8 @@ const PurchasePage = () => {
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+      {/* Statistics Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -711,7 +722,7 @@ const PurchasePage = () => {
               <Plus className="h-8 w-8 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Requisitions</p>
+              <p className="text-sm font-medium text-gray-600">Approved Requisitions</p>
               <p className="text-2xl font-semibold text-gray-900">{requisitions.length}</p>
             </div>
           </div>
@@ -723,7 +734,7 @@ const PurchasePage = () => {
               <div className="h-8 w-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold">₹</div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Amount</p>
+              <p className="text-sm font-medium text-gray-600">Total Purchase Amount</p>
               <p className="text-2xl font-semibold text-gray-900">
                 ₹{vouchers.reduce((sum, v) => sum + parseFloat(v.bill_amount || 0), 0).toLocaleString()}
               </p>

@@ -2,11 +2,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from . import material_voucher_crud, material_voucher_schemas
-from .database import get_db
+from . import database, material_voucher_crud, material_voucher_schemas
 from .auth import get_current_user
 
 router = APIRouter()
+
+# Dependency to get DB session
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 @router.post("/material-vouchers", response_model=material_voucher_schemas.MaterialVoucherOut)
 def create_material_voucher(
