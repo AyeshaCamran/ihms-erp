@@ -770,7 +770,7 @@ const RequestForm = () => {
               <p className="font-semibold mb-4">Approval Process:</p>
               
               {/* HOD Section */}
-              <div className="form-grid grid grid-cols-2 gap-4 mb-4">
+              <div className="form-grid grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="text-xs font-medium">H.O.D. / Incharge Name:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-100 min-h-[25px]">
@@ -780,39 +780,39 @@ const RequestForm = () => {
                 <div>
                   <label className="text-xs font-medium">Signature & Date:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
-                    [Digital signature after approval]
+                    {/* [Digital signature after approval] */}
                   </div>
                 </div>
               </div>
 
               {/* Dean Section */}
-              <div className="form-grid grid grid-cols-2 gap-4 mb-4">
+              <div className="form-grid grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="text-xs font-medium">Dean / Director / MS:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
-                    [To be filled during approval]
+                    {/* [To be filled during approval] */}
                   </div>
                 </div>
                 <div>
                   <label className="text-xs font-medium">Signature & Date:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
-                    [Auto-filled on approval]
+                    {/* [Auto-filled on approval] */}
                   </div>
                 </div>
               </div>
 
               {/* CA and PO Section */}
-              <div className="form-grid grid grid-cols-2 gap-4">
+              <div className="form-grid grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-medium">Competent Authority:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
-                    [Digital approval system]
+                    {/* [Digital approval system] */}
                   </div>
                 </div>
                 <div>
                   <label className="text-xs font-medium">Purchase Officer:</label>
                   <div className="w-full border border-black px-2 py-2 text-xs rounded mt-1 bg-gray-50 min-h-[25px] flex items-center justify-center text-gray-400">
-                    [Digital approval system]
+                    {/* [Digital approval system] */}
                   </div>
                 </div>
               </div>
@@ -820,12 +820,7 @@ const RequestForm = () => {
             
             <div className="text-right ml-6">
               <p className="font-semibold">Approved/Not Approved</p>
-              <div className="mt-4 space-y-2">
-                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
-                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
-                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
-                <div className="border border-black p-2 min-h-[30px] w-[100px] bg-gray-50"></div>
-              </div>
+              
             </div>
           </div>
 

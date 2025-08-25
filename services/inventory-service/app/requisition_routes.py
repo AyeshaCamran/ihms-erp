@@ -16,7 +16,7 @@ def get_db():
         db.close()
 
 # ✅ 1. Create Requisition - Only Incharge can create
-@router.post("/requisitions", response_model=requisition_schemas.RequisitionOut)  # ✅ FIXED: Changed from /requisition to /requisitions
+@router.post("/requisition", response_model=requisition_schemas.RequisitionOut)  # ✅ FIXED: Changed from /requisition to /requisitions
 def create_requisition(
     request: requisition_schemas.RequisitionCreate, 
     db: Session = Depends(get_db),
