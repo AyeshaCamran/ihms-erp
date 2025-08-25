@@ -280,9 +280,36 @@ function App() {
               </RoleBasedRoute>
             } 
           />
-          <Route path="/inventory/purchase/material-voucher/new" element={<MaterialVoucherForm />} />
-          <Route path="/inventory/purchase/material-voucher/edit/:id" element={<MaterialVoucherForm />} />
-          <Route path="/inventory/purchase/material-voucher/:id" element={<MaterialVoucherView />} />
+
+           {/* {PO Material Voucher New} */}
+          <Route 
+            path="inventory/purchase/material-vouchers/new" 
+            element={
+              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.REQUISITION}>
+                <MaterialVoucherForm />
+              </RoleBasedRoute>
+            } 
+          />
+
+           {/* {PO Material Voucher Edit} */}
+          <Route 
+            path="inventory/purchase/material-vouchers/edit/:id" 
+            element={
+              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.REQUISITION}>
+                <MaterialVoucherForm />
+              </RoleBasedRoute>
+            } 
+          />
+
+            {/* {PO Material Voucher View} */}
+          <Route 
+            path="inventory/purchase/material-vouchers/:id" 
+            element={
+              <RoleBasedRoute allowedRoles={ROLE_PERMISSIONS.REQUISITION}>
+                <MaterialVoucherView />
+              </RoleBasedRoute>
+            } 
+          />
 
           {/* ✅ Future Pages - Role-protected placeholders */}
           <Route 

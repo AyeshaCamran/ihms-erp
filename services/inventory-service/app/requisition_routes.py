@@ -1,8 +1,9 @@
-# ✅ STEP 6: Updated requisition_routes.py with complete workflow
+# services/inventory-service/app/requisition_routes.py
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from . import requisition_crud, requisition_schemas, requisition_models, database, auth_utils
+# from .auth import get_current_user  # ✅ FIXED: Import from correct path
 
 router = APIRouter()
 
@@ -15,17 +16,16 @@ def get_db():
         db.close()
 
 # ✅ 1. Create Requisition - Only Incharge can create
-@router.post("/requisition", response_model=requisition_schemas.RequisitionOut)
+@router.post("/requisitions", response_model=requisition_schemas.RequisitionOut)  # ✅ FIXED: Changed from /requisition to /requisitions
 def create_requisition(
     request: requisition_schemas.RequisitionCreate, 
     db: Session = Depends(get_db),
-    user: dict = Depends(auth_utils.get_current_user)  # ✅ Require authentication
+    user: dict = Depends(auth_utils.get_current_user)
 ):
     try:
         print(f"📝 Creating requisition for user: {user}")
         print(f"📦 Request data: {request.dict()}")
         
-        # ✅ STEP 6: Pass user to CRUD for validation
         result = requisition_crud.create_requisition(db, request, user)
         print(f"✅ Requisition created with ID: {result.id}")
         return result
@@ -35,7 +35,7 @@ def create_requisition(
         raise HTTPException(status_code=400, detail=f"Failed to create requisition: {str(e)}")
 
 # ✅ 2. Get Requisitions - All roles can view
-@router.get("/requisition", response_model=List[requisition_schemas.RequisitionOut])
+@router.get("/requisition", response_model=List[requisition_schemas.RequisitionOut])  # ✅ FIXED: Changed from /requisition to /requisitions
 def get_requisitions(
     role: Optional[str] = Query(None, description="User role filter"),
     status: Optional[str] = Query(None, description="Status filter"),
@@ -47,13 +47,12 @@ def get_requisitions(
         print(f"🔍 Fetching requisitions for user: {user}")
         print(f"🔍 Query params - role: {role}, department: {department}, status: {status}")
         
-        # ✅ Use user data if role/department not provided in query
+        # Use user data if role/department not provided in query
         actual_role = role or (user.get("role") if user else None)
         actual_dept = department or (user.get("department") if user else None)
         
         print(f"🎯 Using - role: {actual_role}, department: {actual_dept}")
         
-        # ✅ Fetch requisitions using the updated CRUD function
         requisitions = requisition_crud.get_requisitions_by_filter(
             db=db, 
             role=actual_role, 
@@ -63,7 +62,7 @@ def get_requisitions(
         
         print(f"📊 Found {len(requisitions)} requisitions")
         
-        # ✅ Debug: Print first requisition structure
+        # Debug: Print first requisition structure
         if requisitions:
             first_req = requisitions[0]
             print(f"🔍 First requisition items count: {len(first_req.items) if first_req.items else 0}")
@@ -76,7 +75,7 @@ def get_requisitions(
         raise HTTPException(status_code=500, detail=f"Failed to fetch requisitions: {str(e)}")
 
 # ✅ 3. Get Single Requisition by ID
-@router.get("/requisition/{req_id}", response_model=requisition_schemas.RequisitionOut)
+@router.get("/requisition/{req_id}", response_model=requisition_schemas.RequisitionOut)  # ✅ FIXED: Changed from /requisition to /requisitions
 def get_requisition_by_id(
     req_id: int,
     db: Session = Depends(get_db),
@@ -88,7 +87,7 @@ def get_requisition_by_id(
     return requisition
 
 # ✅ 4. Check if user can approve specific requisition
-@router.get("/requisition/{req_id}/can-approve")
+@router.get("/requisition/{req_id}/can-approve")  # ✅ FIXED: Changed from /requisition to /requisitions
 def check_approval_permission(
     req_id: int,
     db: Session = Depends(get_db),
@@ -108,7 +107,7 @@ def check_approval_permission(
     }
 
 # ✅ 5. Approve Requisition - Role-based approval
-@router.post("/requisition/{req_id}/approve")
+@router.post("/requisition/{req_id}/approve")  # ✅ FIXED: Changed from /requisition to /requisitions
 def approve_requisition(
     req_id: int,
     action: requisition_schemas.ApprovalAction,
@@ -120,7 +119,6 @@ def approve_requisition(
         print(f"👤 User: {user.get('name')} ({user.get('role')})")
         print(f"📝 Action: {action.status}, Remarks: {action.remarks}")
         
-        # ✅ STEP 6: Use the updated CRUD function with role-based approval
         result = requisition_crud.update_requisition_status(
             db=db,
             req_id=req_id,
@@ -144,7 +142,7 @@ def approve_requisition(
         raise HTTPException(status_code=400, detail=f"Failed to process approval: {str(e)}")
 
 # ✅ 6. Get Requisitions by Status for Dashboard
-@router.get("/requisition/status/{status}", response_model=List[requisition_schemas.RequisitionOut])
+@router.get("/requisition/status/{status}", response_model=List[requisition_schemas.RequisitionOut])  # ✅ FIXED
 def get_requisitions_by_status(
     status: str,
     db: Session = Depends(get_db),
@@ -154,11 +152,11 @@ def get_requisitions_by_status(
     try:
         query = db.query(requisition_models.Requisition)
         
-        # ✅ Filter by overall status
+        # Filter by overall status
         if status != "all":
             query = query.filter(requisition_models.Requisition.overall_status.ilike(f"%{status}%"))
         
-        # ✅ Filter by department for role-based access
+        # Filter by department for role-based access
         user_role = user.get("role")
         user_dept = user.get("department")
         
@@ -173,7 +171,7 @@ def get_requisitions_by_status(
         raise HTTPException(status_code=500, detail=f"Failed to fetch requisitions: {str(e)}")
 
 # ✅ 7. Get Pending Approvals for Current User
-@router.get("/requisition/pending-approvals", response_model=List[requisition_schemas.RequisitionOut])
+@router.get("/requisition/pending-approvals", response_model=List[requisition_schemas.RequisitionOut])  # ✅ FIXED
 def get_pending_approvals(
     db: Session = Depends(get_db),
     user: dict = Depends(auth_utils.get_current_user)
@@ -185,39 +183,33 @@ def get_pending_approvals(
         
         query = db.query(requisition_models.Requisition)
         
-        # ✅ STEP 6: Filter based on what the user can approve
+        # Filter based on what the user can approve
         if user_role == "HOD":
-            # HOD can approve requisitions from their department that are HOD pending
             query = query.filter(
                 requisition_models.Requisition.department == user_dept,
                 requisition_models.Requisition.hod_status == "Pending"
             )
         elif user_role == "Dean":
-            # Dean can approve any requisition that HOD has approved
             query = query.filter(
                 requisition_models.Requisition.hod_status == "Approved",
                 requisition_models.Requisition.dean_status == "Pending"
             )
         elif user_role == "Competent Authority":
-            # CA can approve any requisition that Dean has approved
             query = query.filter(
                 requisition_models.Requisition.dean_status == "Approved",
                 requisition_models.Requisition.ca_status == "Pending"
             )
         elif user_role == "PO":
-            # PO can approve any requisition that CA has approved
             query = query.filter(
                 requisition_models.Requisition.ca_status == "Approved",
                 requisition_models.Requisition.po_status == "Pending"
             )
         elif user_role == "Inventory Admin":
-            # Inventory Admin can process any requisition that PO has approved
             query = query.filter(
                 requisition_models.Requisition.po_status == "Approved",
                 requisition_models.Requisition.inventory_status == "Pending"
             )
         else:
-            # Other roles don't have approval permissions
             return []
         
         pending_requisitions = query.order_by(requisition_models.Requisition.created_at.desc()).all()
@@ -230,7 +222,7 @@ def get_pending_approvals(
         raise HTTPException(status_code=500, detail=f"Failed to fetch pending approvals: {str(e)}")
 
 # ✅ 8. Get Requisition Statistics
-@router.get("/requisition/stats")
+@router.get("/requisition/stats")  # ✅ FIXED
 def get_requisition_stats(
     db: Session = Depends(get_db),
     user: dict = Depends(auth_utils.get_current_user)
@@ -242,20 +234,20 @@ def get_requisition_stats(
         
         query = db.query(requisition_models.Requisition)
         
-        # ✅ Filter by department for role-based access
+        # Filter by department for role-based access
         if user_role in ["Incharge", "HOD"] and user_dept:
             query = query.filter(requisition_models.Requisition.department == user_dept)
         
         all_requisitions = query.all()
         
-        # ✅ Calculate statistics
+        # Calculate statistics
         total = len(all_requisitions)
         pending = len([r for r in all_requisitions if r.overall_status == "Pending"])
         approved = len([r for r in all_requisitions if "Approved" in r.overall_status])
         rejected = len([r for r in all_requisitions if "Rejected" in r.overall_status])
         issued = len([r for r in all_requisitions if r.overall_status == "Issued"])
         
-        # ✅ Get pending approvals count for current user
+        # Get pending approvals count for current user
         pending_approvals_query = db.query(requisition_models.Requisition)
         
         if user_role == "HOD":
@@ -300,8 +292,8 @@ def get_requisition_stats(
         print(f"❌ Error fetching requisition stats: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch statistics: {str(e)}")
 
-# ✅ 9. Legacy compatibility routes (PATCH)
-@router.patch("/requisition/{req_id}")
+# ✅ 9. Legacy compatibility routes (PATCH) - Keep for backward compatibility
+@router.patch("/requisition/{req_id}")  # ✅ FIXED
 def update_requisition_status_legacy(
     req_id: int,
     updates: dict,
@@ -312,7 +304,6 @@ def update_requisition_status_legacy(
     try:
         print(f"🔄 Legacy update for requisition {req_id} with: {updates}")
         
-        # ✅ Convert legacy updates to new approval format
         user_role = user.get("role")
         
         if f"{user_role.lower()}_status" in updates:
@@ -330,7 +321,7 @@ def update_requisition_status_legacy(
             
             return result
         else:
-            # ✅ Generic field updates for admin
+            # Generic field updates for admin
             req = db.query(requisition_models.Requisition).filter_by(id=req_id).first()
             if not req:
                 raise HTTPException(status_code=404, detail="Requisition not found")

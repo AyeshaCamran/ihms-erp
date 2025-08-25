@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Printer, Edit } from "lucide-react";
+import logo from "../../assets/iul green logo.jpg";
+
 
 const MaterialVoucherView = () => {
   const { id } = useParams();
@@ -91,7 +93,7 @@ const MaterialVoucherView = () => {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <button
-            onClick={() => navigate(`/inventory/purchase/material-voucher/edit/${id}`)}
+            onClick={() => navigate(`/inventory/purchase/material-vouchers/edit/${id}`)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             <Edit size={16} />
@@ -114,9 +116,7 @@ const MaterialVoucherView = () => {
         <div className="text-center mb-6">
           <div className="flex justify-between items-start mb-4">
             {/* University Logo/Seal placeholder */}
-            <div className="w-20 h-20 border border-black rounded-full flex items-center justify-center">
-              <span className="text-xs">LOGO</span>
-            </div>
+            <img src={logo} alt="Integral Logo" className="h-16" />
             
             {/* Center Title */}
             <div className="flex-1 text-center">

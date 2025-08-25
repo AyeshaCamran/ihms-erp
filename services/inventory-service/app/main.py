@@ -13,8 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # Create DB tables
-models.Base.metadata.create_all(bind=database.engine)
-
+try:
+    models.Base.metadata.create_all(bind=database.engine)
+    material_voucher_models.Base.metadata.create_all(bind=database.engine)
+    print("✅ Database tables created successfully")
+except Exception as e:
+    print(f"❌ Error creating database tables: {e}")
 # App init
 app = FastAPI(title="IHMS Inventory Service")
 
@@ -41,3 +45,12 @@ app.include_router(requisition_router, prefix="/inventory", tags=["Requisition"]
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])  
 app.include_router(maintenance_router, prefix="/inventory", tags=["Maintenance"])  
 app.include_router(material_voucher_router, prefix="/inventory", tags=["Material Vouchers"])
+
+
+@app.get("/")
+def read_root():
+    return {"message": "IHMS Inventory Service is running"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "inventory-service"}

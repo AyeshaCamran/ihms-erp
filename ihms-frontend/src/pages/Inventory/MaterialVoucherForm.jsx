@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Save, ArrowLeft, Printer } from "lucide-react";
+import logo from "../../assets/iul green logo.jpg";
+
 
 const MaterialVoucherForm = () => {
   const navigate = useNavigate();
@@ -309,9 +311,8 @@ const MaterialVoucherForm = () => {
         <div className="text-center mb-6">
           <div className="flex justify-between items-start mb-4">
             {/* University Logo/Seal placeholder */}
-            <div className="w-20 h-20 border border-black rounded-full flex items-center justify-center">
-              <span className="text-xs">LOGO</span>
-            </div>
+            <img src={logo} alt="Integral Logo" className="h-16" />
+            
             
             {/* Center Title */}
             <div className="flex-1 text-center">

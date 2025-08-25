@@ -54,7 +54,7 @@ const PurchasePage = () => {
 
       // ✅ Fetch Purchase Vouchers with error handling
       try {
-        const vouchersResponse = await fetch("http://localhost:8001/inventory/vouchers", {
+        const vouchersResponse = await fetch("http://localhost:8001/inventory/material-vouchers", {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -96,7 +96,7 @@ const PurchasePage = () => {
 
       // ✅ Fetch Approved Requisitions with error handling
       try {
-        const requisitionsResponse = await fetch("http://localhost:8001/inventory/requisitions?status=approved", {
+        const requisitionsResponse = await fetch("http://localhost:8001/inventory/requisition?status=approved", {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -208,7 +208,7 @@ const PurchasePage = () => {
 
   // ✅ Handle create material voucher from requisition
   const handleCreateMaterialVoucher = (requisition) => {
-    navigate("/inventory/purchase/material-voucher/new", {
+    navigate("/inventory/purchase/material-vouchers/new", {
       state: { requisition }
     });
   };
@@ -418,7 +418,7 @@ const PurchasePage = () => {
 
             {activeTab === "material" && currentUser?.role === "PO" && (
               <button
-                onClick={() => navigate("/inventory/purchase/material-voucher/new")}
+                onClick={() => navigate("/inventory/purchase/material-vouchers/new")}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
               >
                 <Plus size={16} />
@@ -606,13 +606,13 @@ const PurchasePage = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => navigate(`/inventory/purchase/material-voucher/${voucher.id}`)}
+                            onClick={() => navigate(`/inventory/purchase/material-vouchers/${voucher.id}`)}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <Eye size={16} />
                           </button>
                           <button
-                            onClick={() => navigate(`/inventory/purchase/material-voucher/edit/${voucher.id}`)}
+                            onClick={() => navigate(`/inventory/purchase/material-vouchers/edit/${voucher.id}`)}
                             className="text-green-600 hover:text-green-900"
                           >
                             <Edit size={16} />
