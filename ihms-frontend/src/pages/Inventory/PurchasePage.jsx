@@ -1,64 +1,54 @@
-// src/pages/Inventory/PurchasePage.jsx
+// Updated src/pages/Inventory/PurchasePage.jsx - Add Material Voucher Integration
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, RefreshCw, Plus, Eye, Edit, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  RefreshCw, 
+  Eye, 
+  Edit, 
+  Trash2,
+  FileText,
+  Receipt // New icon for Material Voucher
+} from "lucide-react";
 
 const PurchasePage = () => {
   const navigate = useNavigate();
   
   // State management
-  const [vouchers, setVouchers] = useState([]);
-  const [filteredVouchers, setFilteredVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [vouchers, setVouchers] = useState([]);
+  const [materialVouchers, setMaterialVouchers] = useState([]); // NEW: Material Vouchers
+  const [requisitions, setRequisitions] = useState([]); // NEW: Approved Requisitions
+  const [filteredVouchers, setFilteredVouchers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [currentUser, setCurrentUser] = useState(null);
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    total_approved_amount: 0
-  });
+  const [activeTab, setActiveTab] = useState("purchase"); // NEW: Tab management
+  const [currentUser, setCurrentUser] = useState(null); // NEW: Current user for role checking
 
-  // Filter tabs
-  const tabs = [
-    { id: "All", label: "All Vouchers", count: stats.total },
-    { id: "Pending", label: "Pending", count: stats.pending },
-    { id: "Approved", label: "Approved", count: stats.approved },
-    { id: "Rejected", label: "Rejected", count: stats.rejected }
-  ];
-
-  // Get current user
+  // Get current user for role-based access
   useEffect(() => {
     const userData = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    
-    if (userData && token) {
-      // Parse user data - adjust based on your auth implementation
+    if (userData) {
       try {
-        // If user data is stored as JSON
         const user = JSON.parse(userData);
         setCurrentUser(user);
       } catch {
-        // If user data is stored as string (just name)
-        setCurrentUser({ name: userData, role: "PO" }); // Default role for testing
+        setCurrentUser({ role: "PO" }); // Default fallback
       }
     }
   }, []);
 
-  // Fetch vouchers and stats
+  // Fetch all data
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const token = localStorage.getItem("token");
-      
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
 
-      // Fetch vouchers
+      // Fetch Purchase Vouchers
       const vouchersResponse = await fetch("http://localhost:8001/inventory/vouchers", {
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -67,28 +57,38 @@ const PurchasePage = () => {
       });
 
       if (!vouchersResponse.ok) {
-        throw new Error(`Failed to fetch vouchers: ${vouchersResponse.status}`);
+        throw new Error("Failed to fetch purchase vouchers");
       }
 
       const vouchersData = await vouchersResponse.json();
-      setVouchers(vouchersData);
+      setVouchers(Array.isArray(vouchersData) ? vouchersData : []);
 
-      // Fetch stats
-      const statsResponse = await fetch("http://localhost:8001/inventory/vouchers-stats", {
+      // NEW: Fetch Material Vouchers
+      const materialVouchersResponse = await fetch("http://localhost:8001/inventory/material-vouchers", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         }
       });
 
-      if (!statsResponse.ok) {
-        throw new Error(`Failed to fetch stats: ${statsResponse.status}`);
+      if (materialVouchersResponse.ok) {
+        const materialVouchersData = await materialVouchersResponse.json();
+        setMaterialVouchers(Array.isArray(materialVouchersData) ? materialVouchersData : []);
       }
 
-      const statsData = await statsResponse.json();
-      setStats(statsData);
+      // NEW: Fetch Approved Requisitions for Material Voucher Creation
+      const requisitionsResponse = await fetch("http://localhost:8001/inventory/requisition?status=Approved", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
 
-      setError(null);
+      if (requisitionsResponse.ok) {
+        const requisitionsData = await requisitionsResponse.json();
+        setRequisitions(Array.isArray(requisitionsData) ? requisitionsData : []);
+      }
+
     } catch (error) {
       console.error("Error fetching data:", error);
       setError(error.message);
@@ -104,32 +104,43 @@ const PurchasePage = () => {
 
   // Filter vouchers based on search and status
   useEffect(() => {
-    let filtered = vouchers;
+    const currentData = activeTab === "purchase" ? vouchers : materialVouchers;
+    let filtered = currentData;
 
     // Status filter
     if (statusFilter !== "All") {
-      filtered = filtered.filter(voucher => voucher.status === statusFilter);
+      filtered = filtered.filter(item => item.status === statusFilter);
     }
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(voucher =>
-        voucher.voucher_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voucher.vendor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (voucher.po_number && voucher.po_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (voucher.invoice_number && voucher.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+      filtered = filtered.filter(item => {
+        if (activeTab === "purchase") {
+          return (
+            item.voucher_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.vendor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.po_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        } else {
+          return (
+            item.voucher_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.req_form_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.received_by_name?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+      });
     }
 
     setFilteredVouchers(filtered);
-  }, [vouchers, searchTerm, statusFilter]);
+  }, [vouchers, materialVouchers, searchTerm, statusFilter, activeTab]);
 
   // Handle refresh
   const handleRefresh = () => {
     fetchData();
   };
 
-  // Handle voucher actions
+  // Purchase Voucher Actions
   const handleView = (voucherId) => {
     navigate(`/inventory/purchase/voucher/${voucherId}`);
   };
@@ -139,76 +150,67 @@ const PurchasePage = () => {
   };
 
   const handleDelete = async (voucherId) => {
-    if (!window.confirm("Are you sure you want to delete this voucher?")) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to delete this voucher?")) return;
 
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:8001/inventory/vouchers/${voucherId}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
         }
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        setVouchers(vouchers.filter(v => v.id !== voucherId));
+      } else {
         throw new Error("Failed to delete voucher");
       }
-
-      // Refresh data
-      fetchData();
     } catch (error) {
       console.error("Error deleting voucher:", error);
-      alert("Failed to delete voucher: " + error.message);
+      alert("Failed to delete voucher");
     }
   };
 
-  const handleApprove = async (voucherId, status, remarks = "") => {
+  // NEW: Material Voucher Actions
+  const handleMaterialView = (materialVoucherId) => {
+    navigate(`/inventory/purchase/material-voucher/${materialVoucherId}`);
+  };
+
+  const handleMaterialEdit = (materialVoucherId) => {
+    navigate(`/inventory/purchase/material-voucher/edit/${materialVoucherId}`);
+  };
+
+  const handleMaterialDelete = async (materialVoucherId) => {
+    if (!window.confirm("Are you sure you want to delete this material voucher?")) return;
+
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8001/inventory/vouchers/${voucherId}/approve`, {
-        method: "PATCH",
+      const response = await fetch(`http://localhost:8001/inventory/material-vouchers/${materialVoucherId}`, {
+        method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: status,
-          approved_remarks: remarks
-        })
+        }
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update voucher status");
+      if (response.ok) {
+        setMaterialVouchers(materialVouchers.filter(v => v.id !== materialVoucherId));
+      } else {
+        throw new Error("Failed to delete material voucher");
       }
-
-      // Refresh data
-      fetchData();
     } catch (error) {
-      console.error("Error updating voucher:", error);
-      alert("Failed to update voucher: " + error.message);
+      console.error("Error deleting material voucher:", error);
+      alert("Failed to delete material voucher");
     }
   };
 
-  // Get status badge color
-  const getStatusBadge = (status) => {
-    const badges = {
-      "Pending": "bg-yellow-100 text-yellow-800",
-      "Approved": "bg-green-100 text-green-800",
-      "Rejected": "bg-red-100 text-red-800",
-      "Paid": "bg-blue-100 text-blue-800"
-    };
-    return badges[status] || "bg-gray-100 text-gray-800";
-  };
-
-  // Check permissions
-  const canCreateVoucher = currentUser?.role === "PO";
-  const canApproveVoucher = currentUser?.role === "Inventory Admin";
-  const canEditVoucher = (voucher) => {
-    return currentUser?.name === voucher.created_by || 
-           currentUser?.role === "Administrator" || 
-           currentUser?.role === "Inventory Admin";
+  // NEW: Create Material Voucher from Requisition
+  const handleCreateMaterialVoucher = (requisition) => {
+    navigate("/inventory/purchase/material-voucher/new", {
+      state: { requisition }
+    });
   };
 
   if (loading) {
@@ -216,7 +218,23 @@ const PurchasePage = () => {
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading vouchers...</span>
+          <span className="ml-2">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <p>Error: {error}</p>
+          <button 
+            onClick={handleRefresh}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Try again
+          </button>
         </div>
       </div>
     );
@@ -226,285 +244,493 @@ const PurchasePage = () => {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Purchase Management</h2>
-        <p className="text-gray-600">Manage purchase vouchers and track payment status</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Purchase & Material Management</h2>
+        <p className="text-gray-600">Manage purchase vouchers and material issuing vouchers</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Vouchers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Plus className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
+      {/* NEW: Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab("purchase")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "purchase"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText size={16} />
+                Purchase Vouchers ({vouchers.length})
+              </div>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab("material")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "material"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+              disabled={currentUser?.role !== "PO"} // Only Purchase Office can access material vouchers
+              title={currentUser?.role !== "PO" ? "Only Purchase Office can access Material Vouchers" : ""}
+            >
+              <div className={`flex items-center gap-2 ${currentUser?.role !== "PO" ? "opacity-50" : ""}`}>
+                <Receipt size={16} />
+                Material Vouchers ({materialVouchers.length})
+                {currentUser?.role !== "PO" && <span className="text-xs">(Purchase Office Only)</span>}
+              </div>
+            </button>
 
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-            </div>
-            <div className="bg-yellow-100 p-2 rounded-lg">
-              <RefreshCw className="h-6 w-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
-            </div>
-            <div className="bg-green-100 p-2 rounded-lg">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-            </div>
-            <div className="bg-red-100 p-2 rounded-lg">
-              <XCircle className="h-6 w-6 text-red-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Approved Amount</p>
-              <p className="text-2xl font-bold text-blue-600">₹{stats.total_approved_amount.toLocaleString()}</p>
-            </div>
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <CheckCircle className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
+            <button
+              onClick={() => setActiveTab("requisitions")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "requisitions"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+              disabled={currentUser?.role !== "PO"} // Only Purchase Office can access requisitions for voucher creation
+              title={currentUser?.role !== "PO" ? "Only Purchase Office can create Material Vouchers from Requisitions" : ""}
+            >
+              <div className={`flex items-center gap-2 ${currentUser?.role !== "PO" ? "opacity-50" : ""}`}>
+                <Plus size={16} />
+                Approved Requisitions ({requisitions.length})
+                {currentUser?.role !== "PO" && <span className="text-xs">(Purchase Office Only)</span>}
+              </div>
+            </button>
+          </nav>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-2">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  statusFilter === tab.id
-                    ? "bg-[#233955] text-white"
-                    : "text-gray-600 hover:text-[#233955] bg-gray-100 hover:bg-gray-200"
-                }`}
-              >
-                {tab.label} ({tab.count})
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-lg shadow mb-6 p-4">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
-            <div className="flex items-center rounded-md bg-[#F0F0F0] px-4 py-2 text-sm text-gray-500 w-[280px]">
-              <Search size={16} className="mr-2" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search vouchers..."
+                placeholder={
+                  activeTab === "purchase" 
+                    ? "Search vouchers, vendors, PO..." 
+                    : activeTab === "material"
+                    ? "Search material vouchers, requisitions..."
+                    : "Search requisitions..."
+                }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-transparent outline-none w-full"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
-            {/* Refresh button */}
+            {/* Status Filter */}
+            {(activeTab === "purchase" || activeTab === "material") && (
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-gray-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="All">All Status</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3">
             <button
               onClick={handleRefresh}
-              className="p-2 rounded-md bg-gray-100 hover:bg-gray-200"
-              title="Refresh data"
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
             >
               <RefreshCw size={16} />
+              Refresh
             </button>
 
-            {/* Add Voucher button - Only for PO */}
-            {canCreateVoucher && (
+            {activeTab === "purchase" && (
               <button
-                onClick={() => navigate("/inventory/purchase/voucher/add")}
-                className="bg-[#233955] hover:bg-[#1a2a40] text-white px-4 py-2 rounded-md text-sm flex items-center gap-2"
+                onClick={() => navigate("/inventory/purchase/voucher/new")}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 <Plus size={16} />
-                Add Voucher
+                Add Purchase Voucher
+              </button>
+            )}
+
+            {activeTab === "material" && currentUser?.role === "PO" && (
+              <button
+                onClick={() => navigate("/inventory/purchase/material-voucher/new")}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                <Plus size={16} />
+                Create Material Voucher
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Error display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
-          <button 
-            onClick={handleRefresh}
-            className="mt-2 text-red-600 hover:text-red-800 underline"
-          >
-            Try again
-          </button>
-        </div>
-      )}
-
-      {/* Current user info */}
-      {currentUser && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-md">
-          <p className="text-sm text-blue-800">
-            <strong>Logged in as:</strong> {currentUser.name} ({currentUser.role})
-            {currentUser.department && ` - ${currentUser.department}`}
-          </p>
-        </div>
-      )}
-
-      {/* Vouchers Table */}
-      <div className="relative">
-        <div className="overflow-auto bg-white border border-[#E6E6E7] rounded-lg shadow-sm max-h-[calc(100vh-250px)]">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-[#F0F0F0] text-[#4B4D4F] font-semibold sticky top-0 z-10">
-              <tr>
-                <th className="px-3 py-3">Voucher No.</th>
-                <th className="px-3 py-3">Vendor Name</th>
-                <th className="px-3 py-3">PO Number</th>
-                <th className="px-3 py-3">Invoice Number</th>
-                <th className="px-3 py-3">Bill Amount</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Store Keeper</th>
-                <th className="px-3 py-3">Created By</th>
-                <th className="px-3 py-3">Created Date</th>
-                <th className="px-3 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredVouchers.length === 0 ? (
+      {/* Content based on active tab */}
+      <div className="bg-white rounded-lg shadow">
+        {/* Purchase Vouchers Tab */}
+        {activeTab === "purchase" && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan="10" className="px-3 py-8 text-center text-gray-500">
-                    {searchTerm || statusFilter !== "All" 
-                      ? "No vouchers found matching your criteria" 
-                      : "No vouchers created yet"}
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Voucher Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                filteredVouchers.map((voucher) => (
-                  <tr key={voucher.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-3">
-                      <span className="font-medium text-blue-600">{voucher.voucher_number}</span>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredVouchers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>No purchase vouchers found</p>
+                      <p className="text-sm mt-1">
+                        {searchTerm || statusFilter !== "All" 
+                          ? "Try adjusting your search or filter"
+                          : "Create your first purchase voucher to get started"
+                        }
+                      </p>
                     </td>
-                    <td className="px-3 py-3">
-                      <div>
-                        <p className="font-medium">{voucher.vendor_name}</p>
-                        {voucher.vendor_gst && (
-                          <p className="text-xs text-gray-500">GST: {voucher.vendor_gst}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">{voucher.po_number || "-"}</td>
-                    <td className="px-3 py-3">{voucher.invoice_number || "-"}</td>
-                    <td className="px-3 py-3">
-                      <span className="font-medium">₹{voucher.bill_amount.toLocaleString()}</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(voucher.status)}`}>
-                        {voucher.status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">{voucher.store_keeper || "-"}</td>
-                    <td className="px-3 py-3">{voucher.created_by}</td>
-                    <td className="px-3 py-3">
-                      {new Date(voucher.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-1">
-                        {/* View button */}
-                        <button
-                          onClick={() => handleView(voucher.id)}
-                          className="p-1 text-blue-600 hover:text-blue-800"
-                          title="View voucher"
-                        >
-                          <Eye size={16} />
-                        </button>
-
-                        {/* Edit button - Only for creator or admin */}
-                        {canEditVoucher(voucher) && voucher.status === "Pending" && (
+                  </tr>
+                ) : (
+                  filteredVouchers.map((voucher) => (
+                    <tr key={voucher.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {voucher.voucher_number || `VCH-${voucher.id}`}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {voucher.po_number && `PO: ${voucher.po_number}`}
+                          {voucher.invoice_number && ` | INV: ${voucher.invoice_number}`}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{voucher.vendor_name}</div>
+                        <div className="text-sm text-gray-500">{voucher.vendor_gst}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          ₹{parseFloat(voucher.bill_amount || 0).toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          voucher.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          voucher.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
+                          voucher.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {voucher.status || 'Draft'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(voucher.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleView(voucher.id)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View"
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             onClick={() => handleEdit(voucher.id)}
-                            className="p-1 text-gray-600 hover:text-gray-800"
-                            title="Edit voucher"
+                            className="text-gray-600 hover:text-gray-900"
+                            title="Edit"
                           >
                             <Edit size={16} />
                           </button>
-                        )}
-
-                        {/* Delete button - Only for creator or admin and pending status */}
-                        {canEditVoucher(voucher) && voucher.status === "Pending" && (
                           <button
                             onClick={() => handleDelete(voucher.id)}
-                            className="p-1 text-red-600 hover:text-red-800"
-                            title="Delete voucher"
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
                           >
                             <Trash2 size={16} />
                           </button>
-                        )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-                        {/* Approve/Reject buttons - Only for Inventory Admin */}
-                        {canApproveVoucher && voucher.status === "Pending" && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(voucher.id, "Approved")}
-                              className="p-1 text-green-600 hover:text-green-800"
-                              title="Approve voucher"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                const remarks = prompt("Enter rejection reason (optional):");
-                                if (remarks !== null) {
-                                  handleApprove(voucher.id, "Rejected", remarks);
-                                }
-                              }}
-                              className="p-1 text-red-600 hover:text-red-800"
-                              title="Reject voucher"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          </>
-                        )}
-                      </div>
+        {/* Material Vouchers Tab */}
+        {activeTab === "material" && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Voucher Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Requisition
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Received By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredVouchers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      <Receipt size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>No material vouchers found</p>
+                      <p className="text-sm mt-1">
+                        {searchTerm || statusFilter !== "All" 
+                          ? "Try adjusting your search or filter"
+                          : "Create your first material voucher to get started"
+                        }
+                      </p>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filteredVouchers.map((voucher) => (
+                    <tr key={voucher.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {voucher.voucher_no || `MV-${voucher.id}`}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Material: {voucher.material_status || 'Complete'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{voucher.req_form_no}</div>
+                        <div className="text-sm text-gray-500">{voucher.req_date}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{voucher.received_by_name}</div>
+                        <div className="text-sm text-gray-500">{voucher.received_by_emp_code}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          voucher.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          voucher.status === 'Issued' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {voucher.status || 'Issued'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(voucher.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleMaterialView(voucher.id)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleMaterialEdit(voucher.id)}
+                            className="text-gray-600 hover:text-gray-900"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleMaterialDelete(voucher.id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Approved Requisitions Tab */}
+        {activeTab === "requisitions" && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Requisition Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {requisitions.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      <Plus size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>No approved requisitions available</p>
+                      <p className="text-sm mt-1">
+                        Approved requisitions will appear here for material voucher creation
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  requisitions.map((requisition) => (
+                    <tr key={requisition.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          REQ-{requisition.id}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {requisition.justification?.substring(0, 50)}...
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{requisition.department}</div>
+                        <div className="text-sm text-gray-500">{requisition.month}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{requisition.created_by}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          {requisition.overall_status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(requisition.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => navigate(`/inventory/requisition/view/${requisition.id}`)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View Requisition"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleCreateMaterialVoucher(requisition)}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
+                            title="Create Material Voucher"
+                          >
+                            Create Voucher
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Summary */}
-      {filteredVouchers.length > 0 && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600">
-            Showing {filteredVouchers.length} of {vouchers.length} vouchers
-            {statusFilter !== "All" && ` (filtered by ${statusFilter})`}
-            {searchTerm && ` (searching for "${searchTerm}")`}
-          </p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Purchase Vouchers</p>
+              <p className="text-2xl font-semibold text-gray-900">{vouchers.length}</p>
+            </div>
+          </div>
         </div>
-      )}
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Receipt className="h-8 w-8 text-green-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Material Vouchers</p>
+              <p className="text-2xl font-semibold text-gray-900">{materialVouchers.length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Plus className="h-8 w-8 text-orange-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Pending Requisitions</p>
+              <p className="text-2xl font-semibold text-gray-900">{requisitions.length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="h-8 w-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold">₹</div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Amount</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                ₹{vouchers.reduce((sum, v) => sum + parseFloat(v.bill_amount || 0), 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

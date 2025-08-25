@@ -22,6 +22,8 @@ import IssueSlipForm from "./pages/Inventory/IssueSlipForm";
 import IndentPage from "./pages/Inventory/IndentPage";
 import IndentForm from "./pages/Inventory/IndentForm";
 import PurchasePage from "./pages/Inventory/PurchasePage";
+import MaterialVoucherForm from './pages/Inventory/MaterialVoucherForm';
+import MaterialVoucherView from './pages/Inventory/MaterialVoucherView';
 
 
 function App() {
@@ -278,7 +280,9 @@ function App() {
               </RoleBasedRoute>
             } 
           />
-
+          <Route path="/inventory/purchase/material-voucher/new" element={<MaterialVoucherForm />} />
+          <Route path="/inventory/purchase/material-voucher/edit/:id" element={<MaterialVoucherForm />} />
+          <Route path="/inventory/purchase/material-voucher/:id" element={<MaterialVoucherView />} />
 
           {/* ✅ Future Pages - Role-protected placeholders */}
           <Route 
